@@ -11,26 +11,6 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-<div id="auth-screen" class="auth-screen">
-  <div class="auth-card">
-    <div class="auth-brand"><div class="brand-mark">S</div><div><b>SAARTHI</b><small>AI Finance Intelligence</small></div></div>
-    <div class="auth-lang"><span>🌐</span><select id="auth-language"><option value="en">English</option><option value="hi">हिन्दी</option><option value="gu">ગુજરાતી</option></select></div>
-    <div class="auth-copy"><span class="section-kicker">WELCOME BACK</span><h1 id="auth-title">Your money, understood.</h1><p id="auth-subtitle">Sign in to continue to your personal financial intelligence dashboard.</p></div>
-    <form id="login-form">
-      <label id="email-label">Email address</label>
-      <input id="login-email" type="email" placeholder="you@example.com" required>
-      <label id="password-label">Password</label>
-      <input id="login-password" type="password" placeholder="••••••••" required>
-      <button class="auth-submit" type="submit" id="login-btn">Sign in securely →</button>
-    </form>
-    <div class="auth-divider"><span>DEMO ENVIRONMENT</span></div>
-    <p class="auth-safe">🔒 Synthetic data only · No real banking credentials are stored.</p>
-    <button class="demo-login" id="demo-login">Continue with demo account</button>
-    <div class="auth-footer">By continuing, you agree to the SAARTHI demo experience.</div>
-  </div>
-</div>
-
   <div class="app-shell">
     <aside class="sidebar" id="sidebar">
       <div class="brand">
@@ -254,7 +234,7 @@
             <div class="chat-messages" id="chat-messages">
               <div class="message ai">Hi! I'm Saarthi 👋 Ask me about your spending, savings, bills or financial health.</div>
             </div>
-            <div class="prompts">
+            <div class="analysis-engine-banner"><strong>Ask anything about the data</strong><span>Saarthi calculates the answer first, then explains it.</span></div><div class="prompts">
               <button class="prompt">Where do I spend the most?</button>
               <button class="prompt">How can I save money?</button>
               <button class="prompt">What is my financial health?</button>

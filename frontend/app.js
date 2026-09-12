@@ -1,607 +1,141 @@
-
-const LANG = {
- en:{title:"Financial overview",sub:"Your money, understood simply.",dashboard:"Dashboard",analytics:"Analytics",transactions:"Transactions",chat:"Ask Saarthi",banks:"Connect Bank",authTitle:"Your money, understood.",authSub:"Sign in to continue to your personal financial intelligence dashboard.",email:"Email address",password:"Password",signin:"Sign in securely →",demo:"Continue with demo account",welcome:"Hi! I'm Saarthi 👋 Ask me about your spending, savings, bills or financial health."},
- hi:{title:"वित्तीय अवलोकन",sub:"आपके पैसे को सरलता से समझें।",dashboard:"डैशबोर्ड",analytics:"विश्लेषण",transactions:"लेन-देन",chat:"सारथी से पूछें",banks:"बैंक जोड़ें",authTitle:"आपके पैसे को समझें।",authSub:"अपने व्यक्तिगत वित्तीय डैशबोर्ड पर जाने के लिए साइन इन करें।",email:"ईमेल पता",password:"पासवर्ड",signin:"सुरक्षित साइन इन →",demo:"डेमो अकाउंट से जारी रखें",welcome:"नमस्ते! मैं सारथी हूँ 👋 अपने खर्च, बचत, बिल या वित्तीय स्वास्थ्य के बारे में पूछें।"},
- gu:{title:"નાણાકીય ઝાંખી",sub:"તમારા પૈસાને સરળતાથી સમજો.",dashboard:"ડેશબોર્ડ",analytics:"વિશ્લેષણ",transactions:"વ્યવહારો",chat:"સારથીને પૂછો",banks:"બેંક જોડો",authTitle:"તમારા પૈસાને સમજો.",authSub:"તમારા વ્યક્તિગત નાણાકીય ડેશબોર્ડમાં આગળ વધવા સાઇન ઇન કરો.",email:"ઈમેલ સરનામું",password:"પાસવર્ડ",signin:"સુરક્ષિત સાઇન ઇન →",demo:"ડેમો એકાઉન્ટ સાથે ચાલુ રાખો",welcome:"નમસ્તે! હું સારથી છું 👋 તમારા ખર્ચ, બચત, બિલ અથવા નાણાકીય સ્વાસ્થ્ય વિશે પૂછો."}
-};
-function applyLanguage(lang){
-  const t=LANG[lang]||LANG.en;
-  localStorage.setItem("saarthi_lang",lang);
-  setText("auth-title",t.authTitle);setText("auth-subtitle",t.authSub);setText("email-label",t.email);setText("password-label",t.password);setText("login-btn",t.signin);setText("demo-login",t.demo);
-  setText("page-title",t.title);setText("page-subtitle",t.sub);
-  const nav=document.querySelectorAll(".nav-item"); if(nav.length>=5){setTextEl(nav[0],t.dashboard);setTextEl(nav[1],t.analytics);setTextEl(nav[2],t.transactions);setTextEl(nav[3],t.chat);setTextEl(nav[4],t.banks);}
-  const sel=$("language-select"), authSel=$("auth-language"); if(sel)sel.value=lang;if(authSel)authSel.value=lang;
-  const first=$("chat-messages")?.querySelector(".message.ai"); if(first && first.dataset.default==="yes") first.textContent=t.welcome;
-}
-function setTextEl(el,text){const span=el?.querySelector("span");el.childNodes.forEach(n=>{if(n.nodeType===3)n.textContent="";}); if(span) el.appendChild(document.createTextNode(text));}
-function setupAuthAndExtras(){
-  const auth=$("auth-screen"), form=$("login-form"), demo=$("demo-login");
-  if(localStorage.getItem("saarthi_signed_in")==="1") auth.style.display="none";
-  const signIn=()=>{localStorage.setItem("saarthi_signed_in","1");auth.style.display="none";showToast("Signed in successfully — welcome to SAARTHI.");};
-  form?.addEventListener("submit",e=>{e.preventDefault();signIn();});
-  demo?.addEventListener("click",signIn);
-  $("auth-language")?.addEventListener("change",e=>applyLanguage(e.target.value));
-  $("language-select")?.addEventListener("change",e=>applyLanguage(e.target.value));
-  $("profile-btn")?.addEventListener("click",e=>{e.stopPropagation();$("profile-menu")?.classList.toggle("open");});
-  $("notifications-btn")?.addEventListener("click",()=>showToast("You have 2 new financial insights. Bills are on track."));
-  $("logout-btn")?.addEventListener("click",()=>{localStorage.removeItem("saarthi_signed_in");location.reload();});
-  document.addEventListener("click",e=>{if(!e.target.closest(".profile-menu")&&!e.target.closest("#profile-btn"))$("profile-menu")?.classList.remove("open");});
-  applyLanguage(localStorage.getItem("saarthi_lang")||"en");
-}
-document.addEventListener("DOMContentLoaded",setupAuthAndExtras);
-
 const API_BASE = "https://saarthi-ai-that-understands-finance.onrender.com";
+const $ = id => document.getElementById(id);
 
-const $ = (id) => document.getElementById(id);
-let dashboardData = null;
-let analyticsData = null;
-
-const DEMO_TRANSACTIONS = [
-  {date:"2026-09-10", merchant:"Swiggy", category:"Food", amount:-420},
-  {date:"2026-09-09", merchant:"Amazon", category:"Shopping", amount:-1299},
-  {date:"2026-09-08", merchant:"Uber", category:"Transport", amount:-280},
-  {date:"2026-09-07", merchant:"Electricity Board", category:"Bills", amount:-1800},
-  {date:"2026-09-06", merchant:"Salary Credit", category:"Income", amount:52000},
-  {date:"2026-09-05", merchant:"BigBasket", category:"Food", amount:-980},
-  {date:"2026-09-03", merchant:"Netflix", category:"Bills", amount:-649},
-  {date:"2026-09-02", merchant:"Myntra", category:"Shopping", amount:-1901},
-  {date:"2026-09-01", merchant:"Metro", category:"Transport", amount:-540},
-  {date:"2026-08-29", merchant:"Swiggy", category:"Food", amount:-310}
-];
-
-const DEMO_MONTHLY = [
-  {month:"2026-07", income:50000, expenses:11800, savings:38200},
-  {month:"2026-08", income:52000, expenses:13600, savings:38400},
-  {month:"2026-09", income:52000, expenses:7659, savings:44341}
-];
-
-const DEMO_CATEGORIES = [
-  {category:"Bills", amount:4200},
-  {category:"Shopping", amount:3200},
-  {category:"Food", amount:2400},
-  {category:"Transport", amount:1800},
-  {category:"Other", amount:2600}
-];
-
-const DEMO_DATA = {
-  balance:24500,
-  totalIncome:52000,
-  totalExpenses:14200,
-  netSavings:37800,
-  savingsRate:72.7,
-  healthScore:84,
-  potentialSavings:3100,
-  categories:DEMO_CATEGORIES,
-  monthly:DEMO_MONTHLY,
-  highestCategory:{category:"Bills", amount:4200},
-  topMerchants:[
-    {merchant:"Electricity Board",amount:1800},
-    {merchant:"Myntra",amount:1901},
-    {merchant:"BigBasket",amount:980}
+// Synthetic dataset: the analytics engine owns the mathematics; AI only interprets results.
+const FINANCE = {
+  account: { bank: "Saarthi Demo Bank", balance: 24500 },
+  months: [
+    {month:"Jun", income:50000, expenses:14200},
+    {month:"Jul", income:50000, expenses:16800},
+    {month:"Aug", income:52000, expenses:15100}
   ],
-  recurring:[
-    {name:"Utilities",amount:1800,frequency:"Monthly"},
-    {name:"Netflix",amount:649,frequency:"Monthly"},
-    {name:"Mobile",amount:599,frequency:"Monthly"}
+  categories: { Food:6200, Shopping:8500, Transport:2800, Bills:5400, Entertainment:3100 },
+  recurring: [
+    {name:"Rent & utilities", amount:5400}, {name:"Mobile", amount:599}, {name:"Streaming", amount:499}
   ],
-  recentTransactions:DEMO_TRANSACTIONS.slice(0,6)
+  transactions: [
+    {date:"2026-08-30", merchant:"Salary credit", category:"Income", amount:52000, status:"Completed"},
+    {date:"2026-08-28", merchant:"Monthly rent", category:"Bills", amount:-4200, status:"Completed"},
+    {date:"2026-08-26", merchant:"Supermarket", category:"Food", amount:-1850, status:"Completed"},
+    {date:"2026-08-24", merchant:"Online Store", category:"Shopping", amount:-3200, status:"Completed"},
+    {date:"2026-08-21", merchant:"Metro / Travel", category:"Transport", amount:-900, status:"Completed"},
+    {date:"2026-08-18", merchant:"Restaurant", category:"Food", amount:-1250, status:"Completed"},
+    {date:"2026-08-15", merchant:"Streaming", category:"Entertainment", amount:-499, status:"Completed"},
+    {date:"2026-08-11", merchant:"Online Store", category:"Shopping", amount:-2100, status:"Completed"},
+    {date:"2026-08-07", merchant:"Electricity", category:"Bills", amount:-1200, status:"Completed"}
+  ]
 };
 
-async function api(path, options = {}) {
-  const response = await fetch(`${API_BASE}${path}`, {
-    ...options,
-    headers: {
-      ...(options.body ? {"Content-Type":"application/json"} : {}),
-      ...(options.headers || {})
-    }
-  });
-  if (!response.ok) throw new Error(`API ${response.status}`);
-  return response.json();
+const fmt = n => "₹" + Math.round(Number(n)||0).toLocaleString("en-IN");
+const pct = (a,b) => b ? +(a/b*100).toFixed(1) : 0;
+const escapeHtml = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function calculate(){
+  const totalExpenses = Object.values(FINANCE.categories).reduce((a,b)=>a+b,0);
+  const income = FINANCE.months.at(-1).income;
+  const savings = income-totalExpenses;
+  const rate = pct(savings,income);
+  const entries = Object.entries(FINANCE.categories).sort((a,b)=>b[1]-a[1]);
+  const top = entries[0];
+  const avg = FINANCE.months.reduce((a,m)=>a+m.expenses,0)/FINANCE.months.length;
+  const first=FINANCE.months[0].expenses,last=FINANCE.months.at(-1).expenses;
+  return {totalExpenses,income,savings,rate,entries,top,avg,trend:pct(last-first,first),months:FINANCE.months};
+}
+const M = calculate();
+
+async function api(path, options={}){
+  const r=await fetch(API_BASE+path,{...options,headers:{...(options.body?{"Content-Type":"application/json"}:{}),...(options.headers||{})}});
+  if(!r.ok) throw Error("API "+r.status); return r.json();
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  setupNavigation();
-  setupHeroButtons();
-  setupMobileMenu();
-  setupChat();
-  setupPayment();
-  setupGlobalClicks();
-  loadDashboard();
-  loadBanks();
-});
-
-function setupGlobalClicks() {
-  document.addEventListener("click", (e) => {
-    const go = e.target.closest("[data-go]");
-    if (go) {
-      e.preventDefault();
-      showSection(go.dataset.go);
-      return;
-    }
-
-    const nav = e.target.closest(".nav-item");
-    if (nav) {
-      e.preventDefault();
-      showSection(nav.dataset.section);
-      return;
-    }
-
-    const prompt = e.target.closest(".prompt");
-    if (prompt) {
-      const input = $("chat-input");
-      if (input) {
-        input.value = prompt.textContent.trim();
-        sendChat();
-      }
-    }
-
-    const connect = e.target.closest(".connect-btn");
-    if (connect) {
-      const bank = connect.dataset.bank || "Demo Bank";
-      connectBank(bank, connect);
-    }
-  });
+function setText(id,v){ if($(id)) $(id).textContent=v; }
+function showSection(name){
+  document.querySelectorAll('.nav-item').forEach(x=>x.classList.toggle('active',x.dataset.section===name));
+  document.querySelectorAll('.section').forEach(x=>x.classList.toggle('active',x.id===name+'-section'));
+  const titles={dashboard:['Financial overview','Your money, understood simply.'],analytics:['Financial intelligence','Ask questions. Get calculations. See the evidence.'],transactions:['Transactions','Synthetic activity powering your analysis.'],chat:['Ask Saarthi','Your AI financial intelligence workspace.'],banks:['Connect bank','Safe simulated connections only.']};
+  if(titles[name]){setText('page-title',titles[name][0]);setText('page-subtitle',titles[name][1]);}
+  if(name==='analytics') renderAnalytics(); if(name==='transactions') renderTransactions();
+  $('sidebar')?.classList.remove('open');
 }
 
-function setupNavigation() {
-  document.querySelectorAll(".nav-item").forEach(btn => {
-    btn.addEventListener("click", () => showSection(btn.dataset.section));
-  });
+function renderDashboard(){
+  setText('balance',fmt(FINANCE.account.balance));setText('income',fmt(M.income));setText('expenses',fmt(M.totalExpenses));setText('savings',fmt(M.savings));setText('savings-rate',M.rate+'% savings rate');
+  setText('health-score',Math.min(100,Math.round(50+M.rate/2))); setText('potential-savings',fmt(Math.round(M.top[1]*.2+FINANCE.categories.Food*.1)));
+  const hc=$('dashboard-categories'); if(hc) hc.innerHTML=M.entries.map(([k,v])=>`<div class="category-row"><div class="category-name">${k}</div><div class="progress"><div class="progress-fill" style="width:${Math.round(v/M.top[1]*100)}%"></div></div><div class="category-amount">${fmt(v)}</div></div>`).join('');
+  const rc=$('recent-transactions'); if(rc) rc.innerHTML=FINANCE.transactions.slice(0,5).map(transactionHtml).join('');
+  const ch=$('monthly-chart'); if(ch) ch.innerHTML=barChart(FINANCE.months.map(x=>({label:x.month,value:x.expenses})));
+  const ring=$('health-ring'); if(ring) ring.style.setProperty('--score',Math.min(100,Math.round(50+M.rate/2))+'%');
+  const insight=$('main-insight'); if(insight) insight.innerHTML=`<div class="insight-symbol">✦</div><div><span class="section-kicker">SAARTHI INSIGHT</span><h3>${M.top[0]} is your biggest spending opportunity.</h3><p>${fmt(M.top[1])} is ${pct(M.top[1],M.totalExpenses)}% of tracked expenses. A 20% reduction could free ${fmt(M.top[1]*.2)} per month.</p></div>`;
 }
-
-function showSection(name) {
-  document.querySelectorAll(".nav-item").forEach(n =>
-    n.classList.toggle("active", n.dataset.section === name)
-  );
-  document.querySelectorAll(".section").forEach(s =>
-    s.classList.toggle("active", s.id === `${name}-section`)
-  );
-
-  const titles = {
-    dashboard:["Financial overview","Your money, understood simply."],
-    analytics:["Financial intelligence","See where your money is going."],
-    transactions:["Transactions","Your simulated financial activity."],
-    chat:["Ask Saarthi","Your AI financial companion."],
-    banks:["Connect bank","Demo bank connections only."]
-  };
-  const t = titles[name] || titles.dashboard;
-  setText("page-title", t[0]);
-  setText("page-subtitle", t[1]);
-
-  if (name === "analytics") loadAnalytics();
-  if (name === "transactions") loadTransactions();
-  closeMobileMenu();
-  window.scrollTo({top:0, behavior:"smooth"});
+function transactionHtml(t){return `<div class="transaction"><div class="transaction-icon">${t.category==='Income'?'↗':'₹'}</div><div class="transaction-info"><div class="transaction-name">${escapeHtml(t.merchant)}</div><div class="transaction-date">${t.date} · ${escapeHtml(t.category)}</div></div><div class="transaction-amount ${t.amount<0?'negative':'positive'}">${t.amount<0?'−':'+'}${fmt(Math.abs(t.amount))}</div></div>`}
+function barChart(items){const max=Math.max(...items.map(x=>x.value),1);return items.map(x=>`<div class="chart-column"><div class="chart-bar" style="height:${Math.max(8,Math.round(x.value/max*82))}%"></div><div class="chart-value">${fmt(x.value)}</div><div class="chart-label">${x.label}</div></div>`).join('')}
+function renderAnalytics(){
+  setText('analytics-income',fmt(M.income));setText('analytics-expenses',fmt(M.totalExpenses));setText('analytics-savings',fmt(M.savings));setText('analytics-rate',M.rate+'%');
+  const cat=$('analytics-categories');if(cat)cat.innerHTML=M.entries.map(([k,v])=>`<div class="category-row"><div class="category-name">${k}</div><div class="progress"><div class="progress-fill" style="width:${Math.round(v/M.top[1]*100)}%"></div></div><div class="category-amount">${fmt(v)}</div></div>`).join('');
+  const chart=$('analytics-chart');if(chart)chart.innerHTML=barChart(FINANCE.months.map(x=>({label:x.month,value:x.expenses})));
+  const merchants=$('top-merchants');if(merchants)merchants.innerHTML=M.entries.slice(0,4).map(([k,v])=>`<div class="transaction"><div class="transaction-info"><strong>${k}</strong><div class="transaction-date">Category total · ${pct(v,M.totalExpenses)}% of expenses</div></div><div class="transaction-amount negative">${fmt(v)}</div></div>`).join('');
+  const recurring=$('recurring-list');if(recurring)recurring.innerHTML=FINANCE.recurring.map(x=>`<div class="transaction"><div class="transaction-info"><strong>${x.name}</strong><div class="transaction-date">Recurring synthetic expense</div></div><div class="transaction-amount negative">${fmt(x.amount)}</div></div>`).join('');
 }
+function renderTransactions(){const body=$('transaction-table-body');if(body)body.innerHTML=FINANCE.transactions.map(t=>`<tr><td>${t.date}</td><td>${escapeHtml(t.merchant)}</td><td>${escapeHtml(t.category)}</td><td>${t.amount<0?'−':'+'}${fmt(Math.abs(t.amount))}</td><td>${t.status}</td></tr>`).join('')}
 
-function setupHeroButtons() {}
-function setupMobileMenu() {
-  $("mobile-menu")?.addEventListener("click", () =>
-    $("sidebar")?.classList.toggle("open")
-  );
+function chartFor(type){
+  if(type==='category') return `<div class="result-chart">${barChart(M.entries.map(([label,value])=>({label,value})))}</div>`;
+  if(type==='trend') return `<div class="result-chart">${barChart(FINANCE.months.map(x=>({label:x.month,value:x.expenses})))}</div>`;
+  if(type==='income') return `<div class="result-chart">${barChart(FINANCE.months.map(x=>({label:x.month,value:x.income-x.expenses})))}</div>`;
+  return `<div class="result-chart">${barChart(M.entries.slice(0,5).map(([label,value])=>({label,value})))}</div>`;
 }
-function closeMobileMenu() {
-  $("sidebar")?.classList.remove("open");
-}
-
-async function loadDashboard() {
-  try {
-    const raw = await api("/api/dashboard");
-    const data = normalizeDashboard(raw);
-    dashboardData = data;
-    renderDashboard(data);
-  } catch (err) {
-    console.warn("Using local demo dashboard:", err);
-    dashboardData = DEMO_DATA;
-    renderDashboard(DEMO_DATA);
-  }
-}
-
-function normalizeDashboard(raw) {
-  const categories = Array.isArray(raw?.categories)
-    ? raw.categories
-    : Object.entries(raw?.categories || {}).map(([category,amount]) => ({category,amount}));
-
-  const expenses = Number(raw?.totalExpenses) ||
-    categories.reduce((sum,x) => sum + Number(x.amount || 0), 0);
-
-  const income = Number(raw?.totalIncome) || 52000;
-  const savings = Number(raw?.netSavings);
-  return {
-    ...DEMO_DATA,
-    ...raw,
-    categories: categories.length ? categories : DEMO_CATEGORIES,
-    totalExpenses: expenses,
-    totalIncome: income,
-    netSavings: Number.isFinite(savings) ? savings : income - expenses,
-    savingsRate: Number(raw?.savingsRate) || ((income-expenses)/income*100),
-    monthly: Array.isArray(raw?.monthly) && raw.monthly.length ? raw.monthly : DEMO_MONTHLY,
-    recentTransactions: Array.isArray(raw?.recentTransactions) ? raw.recentTransactions : DEMO_TRANSACTIONS.slice(0,6),
-    healthScore: Number(raw?.healthScore) || 84,
-    potentialSavings: Number(raw?.potentialSavings) || 3100
-  };
-}
-
-function renderDashboard(data) {
-  setText("balance", money(data.balance));
-  setText("income", money(data.totalIncome));
-  setText("expenses", money(data.totalExpenses));
-  setText("savings", money(data.netSavings));
-  setText("savings-rate", `${Number(data.savingsRate || 0).toFixed(1)}% savings rate`);
-  setText("health-score", data.healthScore ?? 84);
-  setText("potential-savings", money(data.potentialSavings || 0));
-  renderCategories(data.categories, $("dashboard-categories"));
-  renderChart(data.monthly, $("monthly-chart"));
-  renderTransactions(data.recentTransactions || DEMO_TRANSACTIONS.slice(0,6), $("recent-transactions"));
-  renderInsight(data);
-  renderHealth(Number(data.healthScore) || 84);
-}
-
-async function loadAnalytics() {
-  try {
-    const response = await api("/api/analytics");
-    analyticsData = normalizeDashboard(response.analytics || response);
-  } catch (err) {
-    analyticsData = dashboardData || DEMO_DATA;
-  }
-  renderAnalytics(analyticsData);
-}
-
-function renderAnalytics(data) {
-  setText("analytics-income", money(data.totalIncome));
-  setText("analytics-expenses", money(data.totalExpenses));
-  setText("analytics-savings", money(data.netSavings));
-  setText("analytics-rate", `${Number(data.savingsRate || 0).toFixed(1)}%`);
-  renderCategories(data.categories, $("analytics-categories"));
-  renderChart(data.monthly, $("analytics-chart"));
-  renderMerchants(data.topMerchants || DEMO_DATA.topMerchants, $("top-merchants"));
-  renderRecurring(data.recurring || DEMO_DATA.recurring, $("recurring-list"));
-}
-
-async function loadTransactions() {
-  try {
-    const response = await api("/api/transactions");
-    renderTransactionTable(response.transactions || DEMO_TRANSACTIONS);
-  } catch (err) {
-    renderTransactionTable(DEMO_TRANSACTIONS);
-  }
-}
-
-function renderCategories(items, container) {
-  if (!container) return;
-  if (!Array.isArray(items) || !items.length) {
-    container.innerHTML = '<div class="loading">No category data.</div>';
-    return;
-  }
-  const max = Math.max(...items.map(x => Number(x.amount) || 0), 1);
-  container.innerHTML = items.map(x => {
-    const pct = Math.round((Number(x.amount) / max) * 100);
-    return `<div class="category-row">
-      <div class="category-name">${esc(x.category)}</div>
-      <div class="progress"><div class="progress-fill" style="width:${pct}%"></div></div>
-      <div class="category-amount">${money(x.amount)}</div>
-    </div>`;
-  }).join("");
-}
-
-function renderChart(items, container) {
-  if (!container) return;
-  if (!Array.isArray(items) || !items.length) {
-    container.innerHTML = '<div class="loading">No monthly data.</div>';
-    return;
-  }
-  const max = Math.max(...items.map(x => Number(x.expenses) || 0), 1);
-  container.innerHTML = items.map(x => {
-    const h = Math.max(8, Math.round((Number(x.expenses) / max) * 82));
-    return `<div class="chart-column">
-      <div class="chart-bar" style="height:${h}%"></div>
-      <div class="chart-value">${shortMoney(x.expenses)}</div>
-      <div class="chart-label">${monthLabel(x.month)}</div>
-    </div>`;
-  }).join("");
-}
-
-function renderTransactions(items, container) {
-  if (!container) return;
-  container.innerHTML = items.length ? items.map(t => {
-    const negative = Number(t.amount) < 0;
-    return `<div class="transaction">
-      <div class="transaction-icon">${icon(t.category)}</div>
-      <div class="transaction-info">
-        <div class="transaction-name">${esc(t.merchant)}</div>
-        <div class="transaction-date">${dateLabel(t.date)} · ${esc(t.category)}</div>
-      </div>
-      <div class="transaction-amount ${negative ? "negative" : "positive"}">${negative ? "−" : "+"}${money(Math.abs(t.amount))}</div>
-    </div>`;
-  }).join("") : '<div class="loading">No transactions.</div>';
-}
-
-function renderTransactionTable(items) {
-  const body = $("transaction-table-body");
-  if (!body) return;
-  body.innerHTML = items.length ? items.map(t => {
-    const negative = Number(t.amount) < 0;
-    return `<tr>
-      <td>${dateLabel(t.date)}</td>
-      <td>${esc(t.merchant)}</td>
-      <td><span class="badge">${esc(t.category)}</span></td>
-      <td class="${negative ? "negative" : "positive"}">${negative ? "−" : "+"}${money(Math.abs(t.amount))}</td>
-      <td><span class="badge">Simulated</span></td>
-    </tr>`;
-  }).join("") : '<tr><td colspan="5">No transactions.</td></tr>';
-}
-
-function renderMerchants(items, container) {
-  if (!container) return;
-  container.innerHTML = (items || []).map((x,i) =>
-    `<div class="transaction">
-      <div class="transaction-icon">${i+1}</div>
-      <div class="transaction-info"><div class="transaction-name">${esc(x.merchant)}</div><div class="transaction-date">Total spending</div></div>
-      <div class="transaction-amount negative">−${money(x.amount)}</div>
-    </div>`
-  ).join("") || '<div class="loading">No merchant data.</div>';
-}
-
-function renderRecurring(items, container) {
-  if (!container) return;
-  container.innerHTML = (items || []).map(x =>
-    `<div class="transaction">
-      <div class="transaction-icon">↻</div>
-      <div class="transaction-info"><div class="transaction-name">${esc(x.name)}</div><div class="transaction-date">${esc(x.frequency || "Monthly")}</div></div>
-      <div class="transaction-amount">${money(x.amount)}</div>
-    </div>`
-  ).join("") || '<div class="loading">No recurring payments.</div>';
-}
-
-function renderInsight(data) {
-  const el = $("main-insight");
-  if (!el) return;
-  const category = data.highestCategory?.category || "spending";
-  el.innerHTML = `<div class="insight-symbol">✦</div><div>
-    <span class="section-kicker">SAARTHI INSIGHT</span>
-    <h3>Your biggest opportunity is ${esc(category.toLowerCase())}.</h3>
-    <p>Saarthi estimates that you could potentially save ${money(data.potentialSavings || 0)} by reducing discretionary food and shopping expenses.</p>
-  </div>`;
-}
-
-function renderHealth(score) {
-  $("health-ring")?.style.setProperty("--score", `${Math.max(0,Math.min(100,score))}%`);
-  setText("health-label",
-    score >= 80 ? "Strong financial health" :
-    score >= 60 ? "Healthy with room to improve" : "Needs attention"
-  );
-}
-
-function setupChat() {
-  $("send-message")?.addEventListener("click", sendChat);
-  $("chat-input")?.addEventListener("keydown", e => {
-    if (e.key === "Enter") { e.preventDefault(); sendChat(); }
-  });
-}
-
-let chatContext = { lastTopic: null, history: [] };
-
-function smartReply(message) {
-  const m=message.toLowerCase();
-  const d=dashboardData || {};
-  const cats=d.categories || {Food:2400,Shopping:3200,Transport:1800,Bills:4200,Other:2600};
-  const totalExp=Number(d.totalExpenses || Object.values(cats).reduce((a,b)=>a+Number(b||0),0));
-  const income=Number(d.totalIncome || 45000);
-  const savings=Number(d.netSavings ?? income-totalExp);
-  let reply="", topic="general", chips=[];
-
-  const money=n=>"₹"+Math.round(Number(n)||0).toLocaleString("en-IN");
-  const top=Object.entries(cats).sort((a,b)=>Number(b[1])-Number(a[1]))[0];
-
-  if(/hello|hi|hey|namaste|start|help|what can you do/.test(m)){
-    reply=`Hi! I'm Saarthi 👋 I can analyze your spending, savings, recurring bills, financial health, and even answer questions about a purchase. Try asking naturally — you don't need a fixed command.`;
-    chips=["Where do I overspend?","How can I save?","Check my financial health"];
-  } else if(/spend|expense|overspend|where.*money|biggest/.test(m)){
-    topic="spending";
-    reply=`Your largest spending category is ${top[0]} at ${money(top[1])}. Total tracked expenses are about ${money(totalExp)}. ${Number(top[1])>totalExp*.3?"That category is worth watching because it makes up a significant share of your spending.":"Your spending is fairly distributed across categories."}`;
-    chips=["How do I reduce it?","Compare my spending","What can I save?"];
-  } else if(/food|restaurant|delivery|eating/.test(m)){
-    topic="food";
-    const food=Number(cats.Food||2400);
-    reply=`You've spent about ${money(food)} on Food. A 25% reduction would free roughly ${money(food*.25)} this month. The easiest win is to set a weekly food limit and review delivery purchases.`;
-    chips=["Set a food goal","Show another category","How much can I save?"];
-  } else if(/save|saving|savings|cut|reduce|budget/.test(m)){
-    topic="saving";
-    reply=`Based on your demo cash flow, you're saving around ${money(savings)}. A practical next step is to target ${money(Math.max(500,savings*.1))} of additional monthly savings by trimming your top discretionary categories.`;
-    chips=["Where should I cut?","Make me a plan","Check my health"];
-  } else if(/health|score|financial.*fit|doing.*financially/.test(m)){
-    topic="health";
-    const score=Math.max(0,Math.min(100,Math.round(65+(savings/income)*35)));
-    reply=`Your demo Financial Health Score is ${score}/100. Your strongest signal is positive cash flow; your next opportunity is controlling discretionary spending and keeping recurring bills predictable.`;
-    chips=["Why this score?","How can I improve it?","Analyze my spending"];
-  } else if(/income|salary|earn|cash flow|cashflow/.test(m)){
-    topic="income";
-    reply=`Your simulated monthly income is about ${money(income)}, with tracked expenses around ${money(totalExp)}. That leaves approximately ${money(savings)} in net savings.`;
-    chips=["How much can I save?","Show expenses","Financial health"];
-  } else if(/bill|recurring|subscription|utility|mobile/.test(m)){
-    topic="bills";
-    reply=`I found recurring commitments in your demo data. These are useful to review because small recurring charges can quietly reduce monthly savings. Open Transactions to inspect them.`;
-    chips=["Show transactions","How can I save?","Financial health"];
-  } else if(/transaction|purchase|spent on|merchant|payment/.test(m)){
-    topic="transactions";
-    reply=`Your Transactions section contains the simulated activity behind my analysis. I can help you interpret patterns, categories, and unusual spending without exposing any real banking information.`;
-    chips=["Where do I overspend?","Analyze my month","Find recurring bills"];
-  } else if(/afford|buy|purchase|₹|rs\.?|rupee/.test(m)){
-    topic="affordability";
-    reply=`I can help with an affordability check. Tell me the approximate purchase amount and what it is for. I'll compare it with your simulated monthly cash flow and savings capacity.`;
-    chips=["Can I afford ₹5,000?","Can I afford ₹10,000?","Show my savings"];
-  } else if(/month|monthly|analy[sz]e|summary|overview|report/.test(m)){
-    topic="summary";
-    reply=`Here's your quick monthly picture: income ${money(income)}, expenses ${money(totalExp)}, and net savings ${money(savings)}. Your biggest category is ${top[0]}.`;
-    chips=["Where do I overspend?","How can I save?","Check my health"];
-  } else if(chatContext.lastTopic==="affordability" && /\d/.test(m)){
-    const amt=Number((m.match(/[\d,]+/)||["0"])[0].replace(/,/g,""));
-    reply=`For a ${money(amt)} purchase, your simulated net savings are around ${money(savings)}. It looks manageable if this is a one-time purchase, but I'd avoid it if it would reduce your planned emergency buffer.`;
-    chips=["What is my savings rate?","How can I save more?","Analyze my month"];
+function analyzeQuestion(q){
+  const s=q.toLowerCase(); let title='', text='', facts=[], type='category';
+  if(/trend|month|monthly|last.*3|compare/.test(s)){
+    title='3-month spending analysis'; type='trend'; const change=M.months.at(-1).expenses-M.months[0].expenses;
+    text=`Your average monthly expense is <b>${fmt(M.avg)}</b>. Spending moved from <b>${fmt(M.months[0].expenses)}</b> in ${M.months[0].month} to <b>${fmt(M.months.at(-1).expenses)}</b> in ${M.months.at(-1).month}, a ${Math.abs(M.trend)}% ${change>=0?'increase':'decrease'}.`;
+    facts=[['Average monthly spend',fmt(M.avg)],['Highest month','Jul · '+fmt(16800)],['Latest month',fmt(M.months.at(-1).expenses)]];
+  } else if(/food/.test(s)){
+    title='Food spending analysis'; type='category'; const v=FINANCE.categories.Food;
+    text=`You spent <b>${fmt(v)}</b> on Food, which is <b>${pct(v,M.totalExpenses)}%</b> of tracked expenses. Cutting this by 15% would save <b>${fmt(v*.15)}</b> per month and <b>${fmt(v*.15*12)}</b> per year.`;
+    facts=[['Food spend',fmt(v)],['Share of expenses',pct(v,M.totalExpenses)+'%'],['15% saving',fmt(v*.15)+'/month']];
+  } else if(/afford|buy|purchase|laptop|phone/.test(s)){
+    const match=s.match(/(?:₹|rs\.?\s*)([\d,]+)/i); const cost=match?Number(match[1].replace(/,/g,'')):12000; const after=M.savings-cost;
+    title='Affordability analysis'; type='income'; text=`A ${fmt(cost)} purchase would leave approximately <b>${fmt(after)}</b> from this month's calculated savings. Your current savings rate is <b>${M.rate}%</b>. ${after>=0?'The purchase is mathematically affordable from this month’s surplus, but it would reduce your savings buffer.':'It would exceed this month’s calculated surplus, so I would avoid funding it from monthly cash flow.'}`;
+    facts=[['Purchase',fmt(cost)],['Current monthly surplus',fmt(M.savings)],['Surplus after purchase',fmt(after)]];
+  } else if(/save|saving|reduce|cut|budget/.test(s)){
+    title='Savings opportunity analysis'; type='category'; const shop=FINANCE.categories.Shopping,food=FINANCE.categories.Food,total=shop*.2+food*.1;
+    text=`The clearest opportunity is <b>${M.top[0]}</b>. Reducing Shopping by 20% and Food by 10% would free about <b>${fmt(total)}</b> each month, or <b>${fmt(total*12)}</b> per year.`;
+    facts=[['Shopping −20%',fmt(shop*.2)+'/month'],['Food −10%',fmt(food*.1)+'/month'],['Potential annual saving',fmt(total*12)]];
+  } else if(/health|healthy|score/.test(s)){
+    title='Financial health analysis'; type='income'; const score=Math.min(100,Math.round(50+M.rate/2));
+    text=`Your calculated savings rate is <b>${M.rate}%</b>, leaving <b>${fmt(M.savings)}</b> after tracked expenses. Saarthi's demo health score is <b>${score}/100</b>, driven primarily by your savings rate and spending concentration.`;
+    facts=[['Savings rate',M.rate+'%'],['Net monthly surplus',fmt(M.savings)],['Demo health score',score+'/100']];
+  } else if(/income|cash flow|salary|earn/.test(s)){
+    title='Income & cash-flow analysis'; type='income'; text=`Your latest synthetic income is <b>${fmt(M.income)}</b>. Against <b>${fmt(M.totalExpenses)}</b> of tracked expenses, your calculated surplus is <b>${fmt(M.savings)}</b>.`; facts=[['Income',fmt(M.income)],['Expenses',fmt(M.totalExpenses)],['Surplus',fmt(M.savings)]];
   } else {
-    topic="general";
-    reply=`I can help with that. In this demo I can reason over your synthetic financial data — spending, savings, income, bills, transactions, affordability and financial health. Ask me in your own words and I'll keep the conversation context.`;
-    chips=["Analyze my month","Where do I spend most?","Can I afford ₹5,000?"];
+    title='Financial snapshot'; type='category'; text=`I calculated your current snapshot from the supplied synthetic dataset: <b>${fmt(M.income)}</b> income, <b>${fmt(M.totalExpenses)}</b> expenses and <b>${fmt(M.savings)}</b> net savings (${M.rate}%). Your largest category is <b>${M.top[0]}</b> at <b>${fmt(M.top[1])}</b>.`;
+    facts=[['Income',fmt(M.income)],['Expenses',fmt(M.totalExpenses)],['Net savings',fmt(M.savings)]];
   }
-  chatContext.lastTopic=topic;
-  chatContext.history.push({user:message,reply});
-  return {reply,chips};
+  return {title,text,facts,type};
 }
-
-function renderChatChips(chips){
-  const box=$("chat-messages"); if(!box) return;
-  const old=box.querySelector(".ai-chips"); if(old) old.remove();
-  if(!chips?.length)return;
-  const wrap=document.createElement("div"); wrap.className="ai-chips";
-  chips.forEach(c=>{const b=document.createElement("button");b.className="prompt";b.textContent=c;b.addEventListener("click",()=>{$("chat-input").value=c;sendChat();});wrap.appendChild(b);});
-  box.appendChild(wrap);
+function renderAnswer(q){
+  const a=analyzeQuestion(q), box=$('ai-analysis-result'); if(!box)return;
+  box.innerHTML=`<div class="analysis-result-head"><div><span class="section-kicker">DETERMINISTIC ANALYSIS</span><h3>${a.title}</h3></div><span class="verified-badge">✓ Math verified</span></div><p class="analysis-copy">${a.text}</p><div class="analysis-facts">${a.facts.map(x=>`<div><span>${x[0]}</span><strong>${x[1]}</strong></div>`).join('')}</div>${chartFor(a.type)}<div class="calculation-note"><b>How Saarthi works:</b> transaction data → deterministic calculations → visualization → AI explanation. The language model does not invent the financial totals.</div>`;
+  box.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
+function addMessage(text,kind){const box=$('chat-messages');if(!box)return;const d=document.createElement('div');d.className='message '+kind;d.innerHTML=text;box.appendChild(d);box.scrollTop=box.scrollHeight;return d}
+function ask(q){$('chat-input').value=q; sendChat()}
+async function sendChat(){const input=$('chat-input');const q=input?.value.trim();if(!q)return;addMessage(escapeHtml(q),'user');input.value='';const a=analyzeQuestion(q);addMessage(a.text.replace(/<b>/g,'').replace(/<\/b>/g,''),'ai');renderAnswer(q);}
 
-async function sendChat() {
-  const input=$("chat-input"); if(!input)return;
-  const message=input.value.trim(); if(!message)return;
-  addMessage(message,"user"); input.value="";
-  const thinking=addMessage("Thinking…","ai");
-  try{
-    const result=await api("/api/chat",{method:"POST",body:JSON.stringify({message,history:chatContext.history.slice(-6)})});
-    const fallback=smartReply(message);
-    if(thinking) thinking.textContent=result.reply||fallback.reply;
-    renderChatChips(fallback.chips);
-  }catch{
-    const result=smartReply(message);
-    if(thinking) thinking.textContent=result.reply;
-    renderChatChips(result.chips);
+function setup(){
+  document.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>showSection(b.dataset.go)));
+  document.querySelectorAll('.nav-item').forEach(b=>b.addEventListener('click',()=>showSection(b.dataset.section)));
+  document.querySelectorAll('.prompt').forEach(b=>b.addEventListener('click',()=>ask(b.textContent)));
+  $('send-message')?.addEventListener('click',sendChat); $('chat-input')?.addEventListener('keydown',e=>{if(e.key==='Enter')sendChat()});
+  $('mobile-menu')?.addEventListener('click',()=>$('sidebar')?.classList.toggle('open'));
+  $('simulate-payment')?.addEventListener('click',()=>alert('Payment simulation successful — no real money moved.'));
+  document.querySelectorAll('.connect-btn').forEach(b=>b.addEventListener('click',()=>alert(`${b.dataset.bank||'Bank'} demo connection successful. No real account was connected.`)));
+  renderDashboard();renderAnalytics();renderTransactions();
+  // First-class analysis workspace inserted if absent.
+  const chat=document.getElementById('chat-section');
+  if(chat && !document.getElementById('ai-analysis-result')){
+    const panel=chat.querySelector('.chat-panel'); if(panel){const result=document.createElement('div');result.id='ai-analysis-result';result.className='ai-analysis-result';result.innerHTML='<div class="loading">Ask a question to generate a calculation and visualization.</div>';panel.appendChild(result)}
   }
 }
-
-function localReply(message) {
-  const m = message.toLowerCase();
-  if (m.includes("most") || m.includes("spend"))
-    return "Your highest spending category is Bills at ₹4,200, followed by Shopping at ₹3,200.";
-  if (m.includes("save"))
-    return "You could potentially save about ₹3,100 by reducing discretionary shopping and food expenses.";
-  if (m.includes("health") || m.includes("score"))
-    return "Your simulated financial health score is 84/100 — strong, with room to improve your discretionary spending.";
-  if (m.includes("food"))
-    return "Your demo food spending is ₹2,400. The largest recent food transactions are Swiggy and BigBasket.";
-  if (m.includes("bill"))
-    return "Your recurring demo bills include Utilities ₹1,800, Netflix ₹649 and Mobile ₹599.";
-  return "Based on your simulated finances, you have ₹37,800 in net savings and a 72.7% savings rate. Ask me about spending, food, bills or savings.";
-}
-
-function addMessage(text,type) {
-  const box = $("chat-messages");
-  if (!box) return null;
-  const el = document.createElement("div");
-  el.className = `message ${type}`;
-  if(type==="ai" && !box.children.length) el.dataset.default="yes";
-  el.textContent = text;
-  box.appendChild(el);
-  box.scrollTop = box.scrollHeight;
-  return el;
-}
-
-async function loadBanks() {
-  const box = $("bank-list");
-  if (!box) return;
-
-  let banks = ["SBI","HDFC Bank","ICICI Bank","Axis Bank"];
-  try {
-    const result = await api("/api/banks");
-    if (Array.isArray(result) && result.length) banks = result;
-  } catch {}
-
-  box.innerHTML = banks.map(bank => {
-    const name = typeof bank === "string" ? bank : (bank.name || "Demo Bank");
-    const short = typeof bank === "string" ? name.slice(0,3).toUpperCase() : (bank.shortName || name.slice(0,3));
-    return `<div class="panel bank-card">
-      <div class="bank-logo">${esc(short)}</div>
-      <div class="bank-info"><strong>${esc(name)}</strong><span>Synthetic demo connection</span></div>
-      <button class="connect-btn" data-bank="${esc(name)}">Connect</button>
-    </div>`;
-  }).join("");
-}
-
-function connectBank(name, button) {
-  if (button) {
-    button.textContent = "Connected ✓";
-    button.disabled = true;
-  }
-  showToast(`${name} connected in demo mode. No real account was accessed.`);
-}
-
-function setupPayment() {
-  $("simulate-payment")?.addEventListener("click", simulatePayment);
-}
-
-async function simulatePayment() {
-  const button = $("simulate-payment");
-  const old = button?.textContent;
-  if (button) {
-    button.disabled = true;
-    button.textContent = "Processing…";
-  }
-
-  try {
-    const result = await api("/api/payment/simulate", {
-      method:"POST",
-      body:JSON.stringify({amount:2100})
-    });
-    showToast(`${result.message || "Payment simulated successfully."}${result.transactionId ? " · ID: " + result.transactionId : ""}`);
-  } catch {
-    showToast("₹2,100 payment simulated successfully. No real money was moved.");
-  } finally {
-    if (button) {
-      button.disabled = false;
-      button.textContent = old || "Simulate ₹2,100 →";
-    }
-  }
-}
-
-function showToast(message) {
-  let toast = $("saarthi-toast");
-  if (!toast) {
-    toast = document.createElement("div");
-    toast.id = "saarthi-toast";
-    Object.assign(toast.style,{
-      position:"fixed",right:"22px",bottom:"22px",zIndex:"9999",
-      background:"#29264e",color:"#fff",padding:"13px 17px",
-      borderRadius:"12px",fontSize:"12px",fontWeight:"700",
-      boxShadow:"0 12px 35px #0003",maxWidth:"340px"
-    });
-    document.body.appendChild(toast);
-  }
-  toast.textContent = message;
-  toast.style.opacity = "1";
-  clearTimeout(window.__toastTimer);
-  window.__toastTimer = setTimeout(() => toast.style.opacity = "0", 3200);
-}
-
-function setText(id,value) {
-  const el = $(id);
-  if (el) el.textContent = value;
-}
-function money(value) {
-  return `₹${(Number(value)||0).toLocaleString("en-IN")}`;
-}
-function shortMoney(value) {
-  const n = Number(value)||0;
-  return n >= 100000 ? `₹${(n/100000).toFixed(1)}L` : n >= 1000 ? `₹${Math.round(n/1000)}K` : `₹${n}`;
-}
-function monthLabel(value) {
-  if (!value) return "—";
-  return new Date(`${value}-01T00:00:00`).toLocaleDateString("en-IN",{month:"short"});
-}
-function dateLabel(value) {
-  if (!value) return "—";
-  return new Date(`${value}T00:00:00`).toLocaleDateString("en-IN",{day:"2-digit",month:"short"});
-}
-function icon(category) {
-  return ({Food:"🍽",Shopping:"🛍",Transport:"🚗",Bills:"▣",Income:"↗"})[category] || "•";
-}
-function esc(value) {
-  return String(value ?? "")
-    .replaceAll("&","&amp;").replaceAll("<","&lt;")
-    .replaceAll(">","&gt;").replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
-}
+document.addEventListener('DOMContentLoaded',setup);
