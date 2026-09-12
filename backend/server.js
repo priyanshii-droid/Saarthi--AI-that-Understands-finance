@@ -156,6 +156,42 @@ function analyze(transactions, problem=''){
   const audit=auditTransactions(transactions);
   return {periods:monthlyData.length, totalIncome,totalExpenses,netSavings,savingsRate:Number(savingsRate.toFixed(1)),categories:cats,monthly:monthlyData,topMerchants,highestCategory:cats[0]||null,potentialSavings:Math.round(potential),healthScore:score,fixedExpenses:fixed,discretionary,goal,requiredMonthly,targetGap,insights,recommendation,transactionCount:transactions.length,audit};
 }
+function investigateFinances(transactions, problem=''){
+  const a=analyze(transactions,problem);
+  const findings=[];
+  const audit=a.audit||{};
+  for(const issue of (audit.issues||[]).slice(0,12)){
+    findings.push({priority:issue.severity==='high'?1:issue.severity==='medium'?2:3,type:issue.type,title:issue.title,evidence:issue.text,confidence:issue.confidence||0});
+  }
+  const months=a.monthly||[];
+  if(months.length>=2){
+    const prev=months.at(-2), latest=months.at(-1);
+    const expenseDelta=latest.expenses-prev.expenses;
+    if(Math.abs(expenseDelta)>Math.max(500,prev.expenses*0.15)) findings.push({priority:1,type:'month_shift',title:'Material month-to-month expense change',evidence:`Expenses changed by ${money(Math.abs(expenseDelta))} (${prev.expenses?Math.abs(expenseDelta/prev.expenses*100).toFixed(1):'0'}%) from ${prev.month} to ${latest.month}.`,confidence:90});
+    const prevCats=Object.fromEntries((prev.categories||[]).map(x=>[x.category,x.amount]));
+    const latestCats=Object.fromEntries((latest.categories||[]).map(x=>[x.category,x.amount]));
+    const catNames=new Set([...Object.keys(prevCats),...Object.keys(latestCats)]);
+    for(const cat of catNames){
+      const old=prevCats[cat]||0, now=latestCats[cat]||0, delta=now-old;
+      if(delta>Math.max(500,old*.3)) findings.push({priority:2,type:'category_spike',title:`${cat} spending increased`,evidence:`${cat} rose by ${money(delta)} from ${prev.month} to ${latest.month}.`,confidence:86});
+    }
+  }
+  if(a.highestCategory && a.totalExpenses){
+    const share=a.highestCategory.amount/a.totalExpenses*100;
+    if(share>=35) findings.push({priority:2,type:'concentration',title:`High spending concentration in ${a.highestCategory.category}`,evidence:`${a.highestCategory.category} accounts for ${share.toFixed(1)}% of detected expenses.`,confidence:92});
+  }
+  if(a.netSavings<0) findings.push({priority:1,type:'cash_flow',title:'Detected spending exceeds detected income',evidence:`Detected expenses exceed detected income by ${money(Math.abs(a.netSavings))}.`,confidence:98});
+  if(a.audit.coverage==='Limited') findings.push({priority:3,type:'data_quality',title:'Limited data coverage',evidence:'The supplied dated history covers a short period, so trend conclusions may be incomplete.',confidence:95});
+  findings.sort((x,y)=>x.priority-y.priority || y.confidence-x.confidence);
+  const actions=[];
+  if(audit.duplicates) actions.push('Review possible duplicate transactions against the original statement.');
+  if(audit.recurring?.length) actions.push(`Review ${audit.recurring.length} recurring payment pattern${audit.recurring.length>1?'s':''} for necessity and expected renewal dates.`);
+  const biggestFlexible=a.discretionary?.[0];
+  if(biggestFlexible) actions.push(`If you want to improve surplus, test a reduction in ${biggestFlexible.category}; Saarthi estimates about ${money(biggestFlexible.amount*.1)} freed per 10%.`);
+  if(a.netSavings<0) actions.push('Prioritize understanding the cash-flow gap before adding new discretionary commitments.');
+  return {summary:{transactionCount:a.transactionCount,periods:a.periods,income:a.totalIncome,expenses:a.totalExpenses,surplus:a.netSavings,savingsRate:a.savingsRate},findings:findings.slice(0,15),actions:actions.slice(0,6),limitations:['Findings are based only on supplied rows.','An anomaly or duplicate is a review signal, not proof of fraud.','Missing source data can create false gaps.','Saarthi does not invent transactions or balances.']};
+}
+
 function contextFrom(transactions, problem, source='user-data', filename=''){
   const a=analyze(transactions,problem);
   return {source,filename,problem,detected:a.transactionCount,columns:['date','merchant','category','amount'],periods:a.periods,totalIncome:a.totalIncome,totalExpenses:a.totalExpenses,audit:a.audit};
@@ -183,13 +219,14 @@ app.post('/api/import',upload.single('file'),(req,res)=>{
   }catch(e){res.status(400).json({ok:false,error:`Could not read this file: ${e.message}`});}
 });
 app.post('/api/analyze',(req,res)=>{ const state=getState(req); if(req.body?.problem!==undefined) state.problem=String(req.body.problem); if(!state.transactions.length) return res.status(400).json({ok:false,error:'Give Saarthi some financial data first.'}); state.context=contextFrom(state.transactions,state.problem,state.source,state.filename); const analytics=analyze(state.transactions,state.problem); res.json({ok:true,analytics,context:state.context}); });
+app.post('/api/investigate',(req,res)=>{ const state=getState(req); if(!state.transactions.length)return res.status(400).json({ok:false,error:'Load financial data first.'}); const result=investigateFinances(state.transactions,req.body?.problem??state.problem); res.json({ok:true,...result}); });
 app.post('/api/chat',async(req,res)=>{
   const state=getState(req);
   const q=String(req.body?.message||'').trim();
   if(!q)return res.status(400).json({error:'Ask a question.'});
   if(!state.transactions.length) return res.json({reply:'I’m ready. Upload an Excel/CSV file or paste your financial data first. Then tell me what you want to figure out.',needsData:true});
 
-  const toolkit={state,analyze,auditTransactions,money};
+  const toolkit={state,analyze,auditTransactions,money,investigateFinances};
   try{
     const ai=await runSaarthi({state,message:q,toolkit});
     if(ai.configured && ai.reply){
