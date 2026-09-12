@@ -20,19 +20,49 @@ function setTextEl(el,text){
   if(textNodes.length) textNodes[0].textContent=text+" ";
   else el.insertBefore(document.createTextNode(text+" "),span||null);
 }); if(span) el.appendChild(document.createTextNode(text));}
+
+const FULL_TRANSLATIONS={
+en:{
+"Financial overview":"Financial overview","Your money, understood simply.":"Your money, understood simply.","Dashboard":"Dashboard","Analytics":"Analytics","Transactions":"Transactions","Ask Saarthi":"Ask Saarthi","Connect Bank":"Connect Bank","Financial intelligence":"Financial intelligence","See where your money is going.":"See where your money is going.","Your simulated financial activity.":"Your simulated financial activity.","Your AI financial companion.":"Your AI financial companion.","Demo bank connections only.":"Demo bank connections only.","Ask Saarthi":"Ask Saarthi","Your money, understood.":"Your money, understood.","Sign in to continue to your personal financial intelligence dashboard.":"Sign in to continue to your personal financial intelligence dashboard.","Email address":"Email address","Password":"Password","Sign in securely →":"Sign in securely →","Continue with demo account":"Continue with demo account","Where do I spend the most?":"Where do I spend the most?","How can I save money?":"How can I save money?","What is my financial health?":"What is my financial health?","Show my food spending":"Show my food spending"
+},
+hi:{
+"Financial overview":"वित्तीय अवलोकन","Your money, understood simply.":"आपके पैसे को सरलता से समझें।","Dashboard":"डैशबोर्ड","Analytics":"विश्लेषण","Transactions":"लेन-देन","Ask Saarthi":"सारथी से पूछें","Connect Bank":"बैंक जोड़ें","Financial intelligence":"वित्तीय बुद्धिमत्ता","See where your money is going.":"देखें आपका पैसा कहाँ जा रहा है।","Your simulated financial activity.":"आपकी सिम्युलेटेड वित्तीय गतिविधि।","Your AI financial companion.":"आपका AI वित्तीय साथी।","Demo bank connections only.":"केवल डेमो बैंक कनेक्शन।","Your money, understood.":"आपके पैसे को समझें।","Sign in to continue to your personal financial intelligence dashboard.":"अपने व्यक्तिगत वित्तीय डैशबोर्ड पर जाने के लिए साइन इन करें।","Email address":"ईमेल पता","Password":"पासवर्ड","Sign in securely →":"सुरक्षित साइन इन →","Continue with demo account":"डेमो अकाउंट से जारी रखें","Where do I spend the most?":"मैं सबसे ज्यादा कहाँ खर्च करता हूँ?","How can I save money?":"मैं पैसे कैसे बचाऊँ?","What is my financial health?":"मेरा वित्तीय स्वास्थ्य कैसा है?","Show my food spending":"मेरा भोजन खर्च दिखाएँ"
+},
+gu:{
+"Financial overview":"નાણાકીય ઝાંખી","Your money, understood simply.":"તમારા પૈસાને સરળતાથી સમજો.","Dashboard":"ડેશબોર્ડ","Analytics":"વિશ્લેષણ","Transactions":"વ્યવહારો","Ask Saarthi":"સારથીને પૂછો","Connect Bank":"બેંક જોડો","Financial intelligence":"નાણાકીય બુદ્ધિ","See where your money is going.":"તમારા પૈસા ક્યાં જાય છે તે જુઓ.","Your simulated financial activity.":"તમારી સિમ્યુલેટેડ નાણાકીય પ્રવૃત્તિ.","Your AI financial companion.":"તમારો AI નાણાકીય સાથી.","Demo bank connections only.":"માત્ર ડેમો બેંક કનેક્શન.","Your money, understood.":"તમારા પૈસાને સમજો.","Sign in to continue to your personal financial intelligence dashboard.":"તમારા વ્યક્તિગત નાણાકીય ડેશબોર્ડમાં આગળ વધવા સાઇન ઇન કરો.","Email address":"ઈમેલ સરનામું","Password":"પાસવર્ડ","Sign in securely →":"સુરક્ષિત સાઇન ઇન →","Continue with demo account":"ડેમો એકાઉન્ટ સાથે ચાલુ રાખો","Where do I spend the most?":"હું સૌથી વધુ ક્યાં ખર્ચું છું?","How can I save money?":"હું પૈસા કેવી રીતે બચાવું?","What is my financial health?":"મારું નાણાકીય સ્વાસ્થ્ય કેવું છે?","Show my food spending":"મારો ખોરાક ખર્ચ બતાવો"
+}};
+function translatePage(lang){
+ const dict=FULL_TRANSLATIONS[lang]||FULL_TRANSLATIONS.en;
+ document.querySelectorAll("body *").forEach(el=>{
+   if(el.children.length===0 && el.textContent.trim()){
+     const raw=el.textContent.trim();
+     if(dict[raw]) el.textContent=el.textContent.replace(raw,dict[raw]);
+   }
+ });
+ document.querySelectorAll("input[placeholder],textarea[placeholder]").forEach(el=>{
+   const raw=el.getAttribute("placeholder"); if(dict[raw])el.setAttribute("placeholder",dict[raw]);
+ });
+}
+function setLanguageEverywhere(lang){
+ localStorage.setItem("saarthi_lang",lang);
+ applyLanguage(lang);
+ setTimeout(()=>translatePage(lang),20);
+ setTimeout(()=>translatePage(lang),300);
+}
+
 function setupAuthAndExtras(){
   const auth=$("auth-screen"), form=$("login-form"), demo=$("demo-login");
-  if(localStorage.getItem("saarthi_signed_in")==="1") auth.style.display="none";
-  const signIn=()=>{localStorage.setItem("saarthi_signed_in","1");auth.style.display="none";showToast("Signed in successfully — welcome to SAARTHI.");};
+  auth.style.display="grid"; if(localStorage.getItem("saarthi_signed_in")==="1") auth.style.display="none";
+  const signIn=()=>{localStorage.setItem("saarthi_signed_in","1");auth.style.display="none";document.body.classList.add("demo-authenticated");showToast("Demo sign-in successful — welcome to SAARTHI.");};
   form?.addEventListener("submit",e=>{e.preventDefault();signIn();});
   demo?.addEventListener("click",signIn);
-  $("auth-language")?.addEventListener("change",e=>applyLanguage(e.target.value));
-  $("language-select")?.addEventListener("change",e=>applyLanguage(e.target.value));
+  $("auth-language")?.addEventListener("change",e=>setLanguageEverywhere(e.target.value));
+  $("language-select")?.addEventListener("change",e=>setLanguageEverywhere(e.target.value));
   $("profile-btn")?.addEventListener("click",e=>{e.stopPropagation();$("profile-menu")?.classList.toggle("open");});
   $("notifications-btn")?.addEventListener("click",()=>showToast("You have 2 new financial insights. Bills are on track."));
   $("logout-btn")?.addEventListener("click",()=>{localStorage.removeItem("saarthi_signed_in");location.reload();});
   document.addEventListener("click",e=>{if(!e.target.closest(".profile-menu")&&!e.target.closest("#profile-btn"))$("profile-menu")?.classList.remove("open");});
-  applyLanguage(localStorage.getItem("saarthi_lang")||"en");
+  setLanguageEverywhere(localStorage.getItem("saarthi_lang")||"en");
 }
 document.addEventListener("DOMContentLoaded",setupAuthAndExtras);
 
