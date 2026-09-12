@@ -1,141 +1,29 @@
-const API_BASE = "https://saarthi-ai-that-understands-finance.onrender.com";
-const $ = id => document.getElementById(id);
-
-// Synthetic dataset: the analytics engine owns the mathematics; AI only interprets results.
-const FINANCE = {
-  account: { bank: "Saarthi Demo Bank", balance: 24500 },
-  months: [
-    {month:"Jun", income:50000, expenses:14200},
-    {month:"Jul", income:50000, expenses:16800},
-    {month:"Aug", income:52000, expenses:15100}
-  ],
-  categories: { Food:6200, Shopping:8500, Transport:2800, Bills:5400, Entertainment:3100 },
-  recurring: [
-    {name:"Rent & utilities", amount:5400}, {name:"Mobile", amount:599}, {name:"Streaming", amount:499}
-  ],
-  transactions: [
-    {date:"2026-08-30", merchant:"Salary credit", category:"Income", amount:52000, status:"Completed"},
-    {date:"2026-08-28", merchant:"Monthly rent", category:"Bills", amount:-4200, status:"Completed"},
-    {date:"2026-08-26", merchant:"Supermarket", category:"Food", amount:-1850, status:"Completed"},
-    {date:"2026-08-24", merchant:"Online Store", category:"Shopping", amount:-3200, status:"Completed"},
-    {date:"2026-08-21", merchant:"Metro / Travel", category:"Transport", amount:-900, status:"Completed"},
-    {date:"2026-08-18", merchant:"Restaurant", category:"Food", amount:-1250, status:"Completed"},
-    {date:"2026-08-15", merchant:"Streaming", category:"Entertainment", amount:-499, status:"Completed"},
-    {date:"2026-08-11", merchant:"Online Store", category:"Shopping", amount:-2100, status:"Completed"},
-    {date:"2026-08-07", merchant:"Electricity", category:"Bills", amount:-1200, status:"Completed"}
-  ]
-};
-
-const fmt = n => "₹" + Math.round(Number(n)||0).toLocaleString("en-IN");
-const pct = (a,b) => b ? +(a/b*100).toFixed(1) : 0;
-const escapeHtml = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-
-function calculate(){
-  const totalExpenses = Object.values(FINANCE.categories).reduce((a,b)=>a+b,0);
-  const income = FINANCE.months.at(-1).income;
-  const savings = income-totalExpenses;
-  const rate = pct(savings,income);
-  const entries = Object.entries(FINANCE.categories).sort((a,b)=>b[1]-a[1]);
-  const top = entries[0];
-  const avg = FINANCE.months.reduce((a,m)=>a+m.expenses,0)/FINANCE.months.length;
-  const first=FINANCE.months[0].expenses,last=FINANCE.months.at(-1).expenses;
-  return {totalExpenses,income,savings,rate,entries,top,avg,trend:pct(last-first,first),months:FINANCE.months};
-}
-const M = calculate();
-
-async function api(path, options={}){
-  const r=await fetch(API_BASE+path,{...options,headers:{...(options.body?{"Content-Type":"application/json"}:{}),...(options.headers||{})}});
-  if(!r.ok) throw Error("API "+r.status); return r.json();
-}
-
-function setText(id,v){ if($(id)) $(id).textContent=v; }
-function showSection(name){
-  document.querySelectorAll('.nav-item').forEach(x=>x.classList.toggle('active',x.dataset.section===name));
-  document.querySelectorAll('.section').forEach(x=>x.classList.toggle('active',x.id===name+'-section'));
-  const titles={dashboard:['Financial overview','Your money, understood simply.'],analytics:['Financial intelligence','Ask questions. Get calculations. See the evidence.'],transactions:['Transactions','Synthetic activity powering your analysis.'],chat:['Ask Saarthi','Your AI financial intelligence workspace.'],banks:['Connect bank','Safe simulated connections only.']};
-  if(titles[name]){setText('page-title',titles[name][0]);setText('page-subtitle',titles[name][1]);}
-  if(name==='analytics') renderAnalytics(); if(name==='transactions') renderTransactions();
-  $('sidebar')?.classList.remove('open');
-}
-
-function renderDashboard(){
-  setText('balance',fmt(FINANCE.account.balance));setText('income',fmt(M.income));setText('expenses',fmt(M.totalExpenses));setText('savings',fmt(M.savings));setText('savings-rate',M.rate+'% savings rate');
-  setText('health-score',Math.min(100,Math.round(50+M.rate/2))); setText('potential-savings',fmt(Math.round(M.top[1]*.2+FINANCE.categories.Food*.1)));
-  const hc=$('dashboard-categories'); if(hc) hc.innerHTML=M.entries.map(([k,v])=>`<div class="category-row"><div class="category-name">${k}</div><div class="progress"><div class="progress-fill" style="width:${Math.round(v/M.top[1]*100)}%"></div></div><div class="category-amount">${fmt(v)}</div></div>`).join('');
-  const rc=$('recent-transactions'); if(rc) rc.innerHTML=FINANCE.transactions.slice(0,5).map(transactionHtml).join('');
-  const ch=$('monthly-chart'); if(ch) ch.innerHTML=barChart(FINANCE.months.map(x=>({label:x.month,value:x.expenses})));
-  const ring=$('health-ring'); if(ring) ring.style.setProperty('--score',Math.min(100,Math.round(50+M.rate/2))+'%');
-  const insight=$('main-insight'); if(insight) insight.innerHTML=`<div class="insight-symbol">✦</div><div><span class="section-kicker">SAARTHI INSIGHT</span><h3>${M.top[0]} is your biggest spending opportunity.</h3><p>${fmt(M.top[1])} is ${pct(M.top[1],M.totalExpenses)}% of tracked expenses. A 20% reduction could free ${fmt(M.top[1]*.2)} per month.</p></div>`;
-}
-function transactionHtml(t){return `<div class="transaction"><div class="transaction-icon">${t.category==='Income'?'↗':'₹'}</div><div class="transaction-info"><div class="transaction-name">${escapeHtml(t.merchant)}</div><div class="transaction-date">${t.date} · ${escapeHtml(t.category)}</div></div><div class="transaction-amount ${t.amount<0?'negative':'positive'}">${t.amount<0?'−':'+'}${fmt(Math.abs(t.amount))}</div></div>`}
-function barChart(items){const max=Math.max(...items.map(x=>x.value),1);return items.map(x=>`<div class="chart-column"><div class="chart-bar" style="height:${Math.max(8,Math.round(x.value/max*82))}%"></div><div class="chart-value">${fmt(x.value)}</div><div class="chart-label">${x.label}</div></div>`).join('')}
-function renderAnalytics(){
-  setText('analytics-income',fmt(M.income));setText('analytics-expenses',fmt(M.totalExpenses));setText('analytics-savings',fmt(M.savings));setText('analytics-rate',M.rate+'%');
-  const cat=$('analytics-categories');if(cat)cat.innerHTML=M.entries.map(([k,v])=>`<div class="category-row"><div class="category-name">${k}</div><div class="progress"><div class="progress-fill" style="width:${Math.round(v/M.top[1]*100)}%"></div></div><div class="category-amount">${fmt(v)}</div></div>`).join('');
-  const chart=$('analytics-chart');if(chart)chart.innerHTML=barChart(FINANCE.months.map(x=>({label:x.month,value:x.expenses})));
-  const merchants=$('top-merchants');if(merchants)merchants.innerHTML=M.entries.slice(0,4).map(([k,v])=>`<div class="transaction"><div class="transaction-info"><strong>${k}</strong><div class="transaction-date">Category total · ${pct(v,M.totalExpenses)}% of expenses</div></div><div class="transaction-amount negative">${fmt(v)}</div></div>`).join('');
-  const recurring=$('recurring-list');if(recurring)recurring.innerHTML=FINANCE.recurring.map(x=>`<div class="transaction"><div class="transaction-info"><strong>${x.name}</strong><div class="transaction-date">Recurring synthetic expense</div></div><div class="transaction-amount negative">${fmt(x.amount)}</div></div>`).join('');
-}
-function renderTransactions(){const body=$('transaction-table-body');if(body)body.innerHTML=FINANCE.transactions.map(t=>`<tr><td>${t.date}</td><td>${escapeHtml(t.merchant)}</td><td>${escapeHtml(t.category)}</td><td>${t.amount<0?'−':'+'}${fmt(Math.abs(t.amount))}</td><td>${t.status}</td></tr>`).join('')}
-
-function chartFor(type){
-  if(type==='category') return `<div class="result-chart">${barChart(M.entries.map(([label,value])=>({label,value})))}</div>`;
-  if(type==='trend') return `<div class="result-chart">${barChart(FINANCE.months.map(x=>({label:x.month,value:x.expenses})))}</div>`;
-  if(type==='income') return `<div class="result-chart">${barChart(FINANCE.months.map(x=>({label:x.month,value:x.income-x.expenses})))}</div>`;
-  return `<div class="result-chart">${barChart(M.entries.slice(0,5).map(([label,value])=>({label,value})))}</div>`;
-}
-function analyzeQuestion(q){
-  const s=q.toLowerCase(); let title='', text='', facts=[], type='category';
-  if(/trend|month|monthly|last.*3|compare/.test(s)){
-    title='3-month spending analysis'; type='trend'; const change=M.months.at(-1).expenses-M.months[0].expenses;
-    text=`Your average monthly expense is <b>${fmt(M.avg)}</b>. Spending moved from <b>${fmt(M.months[0].expenses)}</b> in ${M.months[0].month} to <b>${fmt(M.months.at(-1).expenses)}</b> in ${M.months.at(-1).month}, a ${Math.abs(M.trend)}% ${change>=0?'increase':'decrease'}.`;
-    facts=[['Average monthly spend',fmt(M.avg)],['Highest month','Jul · '+fmt(16800)],['Latest month',fmt(M.months.at(-1).expenses)]];
-  } else if(/food/.test(s)){
-    title='Food spending analysis'; type='category'; const v=FINANCE.categories.Food;
-    text=`You spent <b>${fmt(v)}</b> on Food, which is <b>${pct(v,M.totalExpenses)}%</b> of tracked expenses. Cutting this by 15% would save <b>${fmt(v*.15)}</b> per month and <b>${fmt(v*.15*12)}</b> per year.`;
-    facts=[['Food spend',fmt(v)],['Share of expenses',pct(v,M.totalExpenses)+'%'],['15% saving',fmt(v*.15)+'/month']];
-  } else if(/afford|buy|purchase|laptop|phone/.test(s)){
-    const match=s.match(/(?:₹|rs\.?\s*)([\d,]+)/i); const cost=match?Number(match[1].replace(/,/g,'')):12000; const after=M.savings-cost;
-    title='Affordability analysis'; type='income'; text=`A ${fmt(cost)} purchase would leave approximately <b>${fmt(after)}</b> from this month's calculated savings. Your current savings rate is <b>${M.rate}%</b>. ${after>=0?'The purchase is mathematically affordable from this month’s surplus, but it would reduce your savings buffer.':'It would exceed this month’s calculated surplus, so I would avoid funding it from monthly cash flow.'}`;
-    facts=[['Purchase',fmt(cost)],['Current monthly surplus',fmt(M.savings)],['Surplus after purchase',fmt(after)]];
-  } else if(/save|saving|reduce|cut|budget/.test(s)){
-    title='Savings opportunity analysis'; type='category'; const shop=FINANCE.categories.Shopping,food=FINANCE.categories.Food,total=shop*.2+food*.1;
-    text=`The clearest opportunity is <b>${M.top[0]}</b>. Reducing Shopping by 20% and Food by 10% would free about <b>${fmt(total)}</b> each month, or <b>${fmt(total*12)}</b> per year.`;
-    facts=[['Shopping −20%',fmt(shop*.2)+'/month'],['Food −10%',fmt(food*.1)+'/month'],['Potential annual saving',fmt(total*12)]];
-  } else if(/health|healthy|score/.test(s)){
-    title='Financial health analysis'; type='income'; const score=Math.min(100,Math.round(50+M.rate/2));
-    text=`Your calculated savings rate is <b>${M.rate}%</b>, leaving <b>${fmt(M.savings)}</b> after tracked expenses. Saarthi's demo health score is <b>${score}/100</b>, driven primarily by your savings rate and spending concentration.`;
-    facts=[['Savings rate',M.rate+'%'],['Net monthly surplus',fmt(M.savings)],['Demo health score',score+'/100']];
-  } else if(/income|cash flow|salary|earn/.test(s)){
-    title='Income & cash-flow analysis'; type='income'; text=`Your latest synthetic income is <b>${fmt(M.income)}</b>. Against <b>${fmt(M.totalExpenses)}</b> of tracked expenses, your calculated surplus is <b>${fmt(M.savings)}</b>.`; facts=[['Income',fmt(M.income)],['Expenses',fmt(M.totalExpenses)],['Surplus',fmt(M.savings)]];
-  } else {
-    title='Financial snapshot'; type='category'; text=`I calculated your current snapshot from the supplied synthetic dataset: <b>${fmt(M.income)}</b> income, <b>${fmt(M.totalExpenses)}</b> expenses and <b>${fmt(M.savings)}</b> net savings (${M.rate}%). Your largest category is <b>${M.top[0]}</b> at <b>${fmt(M.top[1])}</b>.`;
-    facts=[['Income',fmt(M.income)],['Expenses',fmt(M.totalExpenses)],['Net savings',fmt(M.savings)]];
-  }
-  return {title,text,facts,type};
-}
-function renderAnswer(q){
-  const a=analyzeQuestion(q), box=$('ai-analysis-result'); if(!box)return;
-  box.innerHTML=`<div class="analysis-result-head"><div><span class="section-kicker">DETERMINISTIC ANALYSIS</span><h3>${a.title}</h3></div><span class="verified-badge">✓ Math verified</span></div><p class="analysis-copy">${a.text}</p><div class="analysis-facts">${a.facts.map(x=>`<div><span>${x[0]}</span><strong>${x[1]}</strong></div>`).join('')}</div>${chartFor(a.type)}<div class="calculation-note"><b>How Saarthi works:</b> transaction data → deterministic calculations → visualization → AI explanation. The language model does not invent the financial totals.</div>`;
-  box.scrollIntoView({behavior:'smooth',block:'nearest'});
-}
-function addMessage(text,kind){const box=$('chat-messages');if(!box)return;const d=document.createElement('div');d.className='message '+kind;d.innerHTML=text;box.appendChild(d);box.scrollTop=box.scrollHeight;return d}
-function ask(q){$('chat-input').value=q; sendChat()}
-async function sendChat(){const input=$('chat-input');const q=input?.value.trim();if(!q)return;addMessage(escapeHtml(q),'user');input.value='';const a=analyzeQuestion(q);addMessage(a.text.replace(/<b>/g,'').replace(/<\/b>/g,''),'ai');renderAnswer(q);}
-
-function setup(){
-  document.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>showSection(b.dataset.go)));
-  document.querySelectorAll('.nav-item').forEach(b=>b.addEventListener('click',()=>showSection(b.dataset.section)));
-  document.querySelectorAll('.prompt').forEach(b=>b.addEventListener('click',()=>ask(b.textContent)));
-  $('send-message')?.addEventListener('click',sendChat); $('chat-input')?.addEventListener('keydown',e=>{if(e.key==='Enter')sendChat()});
-  $('mobile-menu')?.addEventListener('click',()=>$('sidebar')?.classList.toggle('open'));
-  $('simulate-payment')?.addEventListener('click',()=>alert('Payment simulation successful — no real money moved.'));
-  document.querySelectorAll('.connect-btn').forEach(b=>b.addEventListener('click',()=>alert(`${b.dataset.bank||'Bank'} demo connection successful. No real account was connected.`)));
-  renderDashboard();renderAnalytics();renderTransactions();
-  // First-class analysis workspace inserted if absent.
-  const chat=document.getElementById('chat-section');
-  if(chat && !document.getElementById('ai-analysis-result')){
-    const panel=chat.querySelector('.chat-panel'); if(panel){const result=document.createElement('div');result.id='ai-analysis-result';result.className='ai-analysis-result';result.innerHTML='<div class="loading">Ask a question to generate a calculation and visualization.</div>';panel.appendChild(result)}
-  }
-}
-document.addEventListener('DOMContentLoaded',setup);
+const $=id=>document.getElementById(id);
+const API_BASE=location.protocol==='file:'?'http://localhost:3001':'';
+const SESSION_ID=localStorage.getItem('saarthi_session')||(()=>{const id=crypto.randomUUID?crypto.randomUUID():Math.random().toString(36).slice(2);localStorage.setItem('saarthi_session',id);return id})();
+let state={hasData:false,analytics:null};
+const SAMPLE_PROBLEM='I earn ₹55,000 a month. I want to save ₹10,000 every month and buy a ₹45,000 laptop in 3 months. Tell me if this is realistic and what I should change.';
+const SAMPLE_DATA=`Date,Description,Category,Amount\n2026-09-01,Salary,Income,55000\n2026-09-02,Rent,Housing,-15000\n2026-09-03,Swiggy,Food,-3200\n2026-09-04,Amazon,Shopping,-6500\n2026-09-05,Uber,Transport,-1800\n2026-09-06,Electricity,Bills,-3000\n2026-09-07,Netflix,Subscriptions,-649\n2026-09-08,Shopping,Shopping,-2500\n2026-09-09,Groceries,Food,-2800`;
+async function api(path,opt={}){const headers={...(opt.body instanceof FormData?{}:{'Content-Type':'application/json'}),'x-saarthi-session':SESSION_ID,...(opt.headers||{})};const r=await fetch(`${API_BASE}${path}`,{...opt,headers});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||`Request failed (${r.status})`);return j;}
+function money(n){return `₹${Math.round(Number(n)||0).toLocaleString('en-IN')}`}
+function esc(s){return String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
+function setText(id,t){const e=$(id);if(e)e.textContent=t}
+function showToast(t){let x=$('toast');if(!x){x=document.createElement('div');x.id='toast';x.style='position:fixed;right:20px;bottom:20px;z-index:99999;background:#29264e;color:white;padding:12px 16px;border-radius:11px;font:600 12px DM Sans;box-shadow:0 15px 40px #0003';document.body.appendChild(x)}x.textContent=t;x.style.display='block';clearTimeout(window.__toast);window.__toast=setTimeout(()=>x.style.display='none',3000)}
+function setupAuth(){const auth=$('auth-screen');if(localStorage.getItem('saarthi_signed_in')==='1')auth.style.display='none';const sign=()=>{localStorage.setItem('saarthi_signed_in','1');auth.style.display='none';showToast('Welcome to Saarthi.');};$('login-form')?.addEventListener('submit',e=>{e.preventDefault();sign()});$('demo-login')?.addEventListener('click',sign);$('logout-btn')?.addEventListener('click',()=>{localStorage.removeItem('saarthi_signed_in');location.reload()})}
+function showSection(name){document.querySelectorAll('.nav-item').forEach(x=>x.classList.toggle('active',x.dataset.section===name));document.querySelectorAll('.section').forEach(x=>x.classList.toggle('active',x.id===name+'-section'));const titles={dashboard:['Financial overview','Your money, understood simply.'],analytics:['Financial intelligence','Saarthi finds patterns in your data.'],transactions:['Your data','The financial information Saarthi is using.'],chat:['Ask Saarthi','Ask a question. Saarthi will reason from your data.'],banks:['Connect bank','Optional demo connection — your own data is the primary source.'],workspace:['My Data','Give Saarthi the context it needs to help you.']};setText('page-title',(titles[name]||titles.dashboard)[0]);setText('page-subtitle',(titles[name]||titles.dashboard)[1]);if(name==='analytics')renderAnalytics(state.analytics);if(name==='transactions')renderTransactions(state.analytics?.transactions||[]);if(name==='workspace')renderContext();closeMobile()}
+function closeMobile(){$('sidebar')?.classList.remove('open')}
+function setupNav(){document.addEventListener('click',e=>{const n=e.target.closest('[data-go]');if(n){e.preventDefault();showSection(n.dataset.go);return}const b=e.target.closest('.nav-item');if(b){e.preventDefault();showSection(b.dataset.section)}});$('mobile-menu')?.addEventListener('click',()=>$('sidebar')?.classList.toggle('open'))}
+function setupWorkspace(){const drop=$('upload-drop'),file=$('data-file');$('choose-file')?.addEventListener('click',e=>{e.stopPropagation();file.click()});drop?.addEventListener('click',e=>{if(e.target.tagName!=='BUTTON')file.click()});['dragenter','dragover'].forEach(x=>drop?.addEventListener(x,e=>{e.preventDefault();drop.classList.add('drag')}));['dragleave','drop'].forEach(x=>drop?.addEventListener(x,e=>{e.preventDefault();drop.classList.remove('drag')}));drop?.addEventListener('drop',e=>{if(e.dataTransfer.files[0]){file.files=e.dataTransfer.files;showToast('File selected: '+e.dataTransfer.files[0].name)}});file?.addEventListener('change',()=>{if(file.files[0])$('upload-status').textContent=`Selected: ${file.files[0].name}`});$('use-sample')?.addEventListener('click',()=>{$('problem-input').value=SAMPLE_PROBLEM;$('data-input').value=SAMPLE_DATA});$('analyze-data')?.addEventListener('click',analyzeUserData);$('reset-data')?.addEventListener('click',resetData);}
+async function analyzeUserData(){const problem=$('problem-input').value.trim();const file=$('data-file').files[0];const paste=$('data-input').value.trim();if(!problem&&!file&&!paste){showToast('Tell Saarthi what you want to figure out and add some data.');return}$('upload-status').textContent='Saarthi is understanding your data…';try{let j;if(file){const fd=new FormData();fd.append('file',file);fd.append('problem',problem);j=await api('/api/import',{method:'POST',body:fd})}else{j=await api('/api/import',{method:'POST',body:JSON.stringify({problem,data:paste})})}state={hasData:true,analytics:j.analytics};renderContext(j.context);renderAnalysis(j.analytics);$('upload-status').textContent=`Understood ${j.context.detected} usable transaction rows.`;showToast('Saarthi has understood your financial context.');showSection('workspace')}catch(e){$('upload-status').textContent=e.message;showToast(e.message)}}
+function renderContext(c){const box=$('context-summary');if(!box)return;if(!state.hasData&&!c){box.innerHTML='<div class="empty-state"><div>✦</div><strong>Your financial context will appear here.</strong><p>Saarthi will detect columns, amounts, dates, categories, income, expenses and goals automatically.</p></div>';return}c=c||{};box.innerHTML=`<div class="context-stats"><div class="context-stat"><span>Rows understood</span><strong>${c.detected??state.analytics?.transactionCount??0}</strong></div><div class="context-stat"><span>Source</span><strong>${esc(c.filename||c.source||'User data')}</strong></div><div class="context-stat"><span>Income detected</span><strong>${money(c.totalIncome??state.analytics?.totalIncome)}</strong></div><div class="context-stat"><span>Expenses detected</span><strong>${money(c.totalExpenses??state.analytics?.totalExpenses)}</strong></div></div><div class="workspace-panel-note">Detected structure: ${(c.columns||['date','merchant','category','amount']).join(' · ')}</div>`;setText('context-badge','Context ready')}
+function renderAnalysis(a){const out=$('analysis-output');if(!out||!a)return;out.classList.remove('hidden');const cats=(a.categories||[]).slice(0,7);const audit=a.audit||{};const confidence=a.transactionCount>=50&&audit.coverage!=='Limited'?'High':a.transactionCount>=10?'Medium':'Low';out.innerHTML=`<article class="panel"><div class="analysis-head"><div><span class="section-kicker">SAARTHI REASONING</span><h3>Here's what your data says.</h3><p class="workspace-panel-note">Saarthi calculated this from your supplied data — and separated findings from items that need human review.</p></div><span class="mini-badge">Confidence: ${confidence}</span></div><div class="analysis-grid"><div class="analysis-stat"><span>INCOME</span><strong>${money(a.totalIncome)}</strong></div><div class="analysis-stat"><span>EXPENSES</span><strong>${money(a.totalExpenses)}</strong></div><div class="analysis-stat"><span>SURPLUS</span><strong>${money(a.netSavings)}</strong></div><div class="analysis-stat"><span>SAVINGS RATE</span><strong>${a.savingsRate}%</strong></div></div><div class="audit-strip"><div><b>🔎 ${audit.reviewCount||0}</b><span>items to review</span></div><div><b>♻ ${audit.duplicates||0}</b><span>possible duplicates</span></div><div><b>⚠ ${audit.anomalies||0}</b><span>unusual expenses</span></div><div><b>↻ ${audit.recurring?.length||0}</b><span>recurring patterns</span></div><div><b>${audit.coverage||'Limited'}</b><span>data coverage</span></div></div><div class="analysis-panels"><div><div class="recommendation"><h4>✦ Saarthi's recommendation</h4><p>${esc(a.recommendation)}</p></div><div class="categories" style="margin-top:16px">${cats.map(x=>`<div class="category-row"><div class="category-name">${esc(x.category)}</div><div class="progress"><div class="progress-fill" style="width:${Math.round(x.amount/Math.max(cats[0]?.amount||1,1)*100)}%"></div></div><div class="category-amount">${money(x.amount)}</div></div>`).join('')}</div></div><div><span class="section-kicker">AUDIT INTELLIGENCE</span><div class="audit-list">${(audit.issues||[]).slice(0,6).map(i=>`<div class="audit-item ${esc(i.severity)}"><div><strong>${esc(i.title)}</strong><p>${esc(i.text)}</p></div><span>${i.confidence||0}%</span></div>`).join('')||'<div class="empty-state compact"><strong>No immediate flags.</strong><p>Saarthi did not find obvious duplicates or anomalies in the supplied rows.</p></div>'}</div></div></div><div class="scenario-box"><span class="section-kicker">WHAT IF?</span><h3 style="margin:5px 0 12px;font:700 15px Manrope">Test a change before making it.</h3><div class="scenario-controls"><label>Category<select id="scenario-category">${cats.map(x=>`<option value="${esc(x.category)}">${esc(x.category)} — ${money(x.amount)}</option>`).join('')}</select></label><label>Reduce by <input id="scenario-reduction" type="range" min="0" max="50" value="10"><output id="scenario-value">10%</output></label></div><div id="scenario-result" class="scenario-result">Move the slider to simulate the effect.</div></div></article>`;const range=$('scenario-reduction');const update=async()=>{const cat=$('scenario-category').value;const reduction=Number(range.value);setText('scenario-value',reduction+'%');try{const r=await api('/api/simulate',{method:'POST',body:JSON.stringify({category:cat,reduction})});$('scenario-result').innerHTML=`Reducing <b>${esc(cat)}</b> by ${reduction}% could free <b>${money(r.savingsPerPeriod)}</b> per period and <b>${money(r.yearlySavings)}</b> over 12 periods. Estimated surplus becomes <b>${money(r.newSurplus)}</b>.`;}catch(e){}};range?.addEventListener('input',update);$('scenario-category')?.addEventListener('change',update);update()}
+function renderDashboard(a){if(!a){['balance','income','expenses','savings'].forEach(x=>setText(x,'—'));return}setText('balance','—');setText('income',money(a.totalIncome));setText('expenses',money(a.totalExpenses));setText('savings',money(a.netSavings));setText('savings-rate',`${a.savingsRate}% savings rate`);setText('health-score',a.healthScore);const ring=$('health-ring');if(ring)ring.style.setProperty('--score',`${a.healthScore}%`);setText('health-label',a.healthScore>=75?'Healthy foundation':a.healthScore>=55?'Room to improve':'Needs attention');renderCategories(a.categories,$('dashboard-categories'));renderChart(a.monthly,$('monthly-chart'));renderTransactions(a.transactions?.slice(0,6)||[],$('recent-transactions'));const ins=$('main-insight');if(ins)ins.querySelector('h3').textContent=a.recommendation; if(ins)ins.querySelector('p').textContent=`Detected ${a.transactionCount} rows from your supplied data.`}
+function renderCategories(items,c){if(!c)return;if(!items?.length){c.innerHTML='<div class="loading">No data yet.</div>';return}const max=items[0].amount||1;c.innerHTML=items.map(x=>`<div class="category-row"><div class="category-name">${esc(x.category)}</div><div class="progress"><div class="progress-fill" style="width:${Math.round(x.amount/max*100)}%"></div></div><div class="category-amount">${money(x.amount)}</div></div>`).join('')}
+function renderChart(items,c){if(!c)return;if(!items?.length){c.innerHTML='<div class="loading">Add dated transactions to see trends.</div>';return}const max=Math.max(...items.map(x=>x.expenses),1);c.innerHTML=items.map(x=>`<div class="chart-column"><div class="chart-bar" style="height:${Math.max(8,x.expenses/max*82)}%"></div><div class="chart-value">${money(x.expenses)}</div><div class="chart-label">${esc(x.month)}</div></div>`).join('')}
+function renderTransactions(items,c){if(!c)return;c.innerHTML=items?.length?items.map(t=>`<div class="transaction"><div class="transaction-icon">${t.amount<0?'↘':'↗'}</div><div class="transaction-info"><div class="transaction-name">${esc(t.merchant)}</div><div class="transaction-date">${esc(t.date||'Date not provided')} · ${esc(t.category)}</div></div><div class="transaction-amount ${t.amount<0?'negative':'positive'}">${t.amount<0?'-':'+'}${money(Math.abs(t.amount))}</div></div>`).join(''):'<div class="loading">No transactions yet.</div>'}
+function renderAnalytics(a){if(!a)return;setText('analytics-income',money(a.totalIncome));setText('analytics-expenses',money(a.totalExpenses));setText('analytics-savings',money(a.netSavings));setText('analytics-rate',a.savingsRate+'%');renderCategories(a.categories,$('analytics-categories'));renderChart(a.monthly,$('analytics-chart'));const tm=$('top-merchants');if(tm)tm.innerHTML=(a.topMerchants||[]).map(x=>`<div class="transaction"><div class="transaction-info"><div class="transaction-name">${esc(x.merchant)}</div></div><div class="transaction-amount negative">${money(x.amount)}</div></div>`).join('')||'<div class="loading">No merchant data.</div>';const rc=$('recurring-list');if(rc)rc.innerHTML='<div class="loading">Recurring patterns are inferred from repeated descriptions when enough history exists.</div>'}
+async function loadState(){try{const j=await api('/api/state');state={hasData:j.hasData,analytics:j.analytics?.transactionCount?j.analytics:null};if(j.hasData){renderDashboard(j.analytics);renderContext(j.context);renderAnalysis(j.analytics);renderTransactions(j.transactions||[],$('transaction-table-body'));}else renderDashboard(null)}catch(e){renderDashboard(null)}}
+async function resetData(){try{await api('/api/reset',{method:'POST',body:'{}'});state={hasData:false,analytics:null};$('problem-input').value='';$('data-input').value='';$('data-file').value='';$('analysis-output').classList.add('hidden');$('upload-status').textContent='';renderContext();renderDashboard(null);showToast('Saarthi workspace reset.')}catch(e){showToast(e.message)}}
+function setupChat(){const send=async()=>{const input=$('chat-input'),q=input?.value.trim();if(!q)return;const box=$('chat-messages');box.innerHTML+=`<div class="message user">${esc(q)}</div>`;input.value='';const typing=document.createElement('div');typing.className='message ai';typing.textContent='Saarthi is thinking…';box.appendChild(typing);box.scrollTop=box.scrollHeight;try{const j=await api('/api/chat',{method:'POST',body:JSON.stringify({message:q})});typing.textContent=j.reply;if(j.analytics){state.analytics=j.analytics;state.hasData=true;renderDashboard(j.analytics);renderAnalysis(j.analytics)}}catch(e){typing.textContent=e.message}};$('send-message')?.addEventListener('click',send);$('chat-input')?.addEventListener('keydown',e=>{if(e.key==='Enter')send()});document.querySelectorAll('.prompt').forEach(p=>p.addEventListener('click',()=>{$('chat-input').value=p.textContent;send()}))}
+async function loadBanks(){try{const j=await api('/api/banks');const c=$('bank-list');if(c)c.innerHTML=j.map(b=>`<article class="panel bank-card"><div class="bank-logo">${esc(b.shortName)}</div><div class="bank-info"><strong>${esc(b.name)}</strong><span>Demo connection only</span></div><button class="connect-btn" data-bank="${esc(b.name)}">Use demo</button></article>`).join('')}catch(e){}}
+document.addEventListener('DOMContentLoaded',()=>{setupAuth();setupNav();setupWorkspace();setupChat();loadState();loadBanks();document.querySelectorAll('.prompt').forEach(p=>p.dataset.default='yes')});

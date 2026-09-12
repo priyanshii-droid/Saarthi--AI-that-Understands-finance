@@ -11,6 +11,26 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+<div id="auth-screen" class="auth-screen">
+  <div class="auth-card">
+    <div class="auth-brand"><div class="brand-mark">S</div><div><b>SAARTHI</b><small>AI Finance Intelligence</small></div></div>
+    <div class="auth-lang"><span>🌐</span><select id="auth-language"><option value="en">English</option><option value="hi">हिन्दी</option><option value="gu">ગુજરાતી</option></select></div>
+    <div class="auth-copy"><span class="section-kicker">WELCOME BACK</span><h1 id="auth-title">Your money, understood.</h1><p id="auth-subtitle">Sign in to continue to your personal financial intelligence workspace.</p></div>
+    <form id="login-form">
+      <label id="email-label">Email address</label>
+      <input id="login-email" type="email" placeholder="you@example.com" required>
+      <label id="password-label">Password</label>
+      <input id="login-password" type="password" placeholder="••••••••" required>
+      <button class="auth-submit" type="submit" id="login-btn">Sign in securely →</button>
+    </form>
+    <div class="auth-divider"><span>DEMO ENVIRONMENT</span></div>
+    <p class="auth-safe">🔒 Synthetic data only · No real banking credentials are stored.</p>
+    <button class="demo-login" id="demo-login">Continue with demo account</button>
+    <div class="auth-footer">By continuing, you agree to the SAARTHI demo experience.</div>
+  </div>
+</div>
+
   <div class="app-shell">
     <aside class="sidebar" id="sidebar">
       <div class="brand">
@@ -27,6 +47,7 @@
         <button class="nav-item" data-section="transactions"><span>↕</span>Transactions</button>
         <button class="nav-item" data-section="chat"><span>✦</span>Ask Saarthi</button>
         <button class="nav-item" data-section="banks"><span>▣</span>Connect Bank</button>
+        <button class="nav-item" data-section="workspace"><span>⌁</span>My Data</button>
       </nav>
 
       <div class="demo-card">
@@ -54,8 +75,8 @@
           <div class="hero">
             <div class="hero-copy">
               <span class="eyebrow">YOUR FINANCIAL COMPANION</span>
-              <h2>Your money has a story.<br>Saarthi helps you understand it.</h2>
-              <p>An intelligent financial companion that turns transactions into clear insights, savings opportunities and actionable decisions.</p>
+              <h2>You bring the data.<br>Saarthi figures out the decision.</h2>
+              <p>Upload a budget, spreadsheet or transaction file. Ask a question. Saarthi understands the numbers, does the maths, finds patterns and explains what you should consider next.</p>
               <div class="hero-actions">
                 <button class="btn btn-light" data-go="chat">Ask Saarthi <span>→</span></button>
                 <button class="btn btn-ghost" data-go="analytics">View insights</button>
@@ -206,8 +227,8 @@
         <section class="section" id="transactions-section">
           <div class="section-intro">
             <span class="section-kicker">SIMULATED ACTIVITY</span>
-            <h2>Your transactions.</h2>
-            <p>A transparent view of the synthetic activity powering this demo.</p>
+            <h2>Your data.</h2>
+            <p>A transparent view of the information Saarthi is currently using.</p>
           </div>
           <article class="panel table-panel">
             <div class="table-wrap">
@@ -223,7 +244,7 @@
           <div class="section-intro">
             <span class="section-kicker">YOUR AI COMPANION</span>
             <h2>Ask Saarthi.</h2>
-            <p>Ask questions about the simulated financial data in plain language.</p>
+            <p>Ask Saarthi questions about your uploaded or entered financial data in plain language.</p>
           </div>
           <article class="chat-panel">
             <div class="chat-header">
@@ -234,17 +255,47 @@
             <div class="chat-messages" id="chat-messages">
               <div class="message ai">Hi! I'm Saarthi 👋 Ask me about your spending, savings, bills or financial health.</div>
             </div>
-            <div class="analysis-engine-banner"><strong>Ask anything about the data</strong><span>Saarthi calculates the answer first, then explains it.</span></div><div class="prompts">
+            <div class="prompts">
               <button class="prompt">Where do I spend the most?</button>
               <button class="prompt">How can I save money?</button>
               <button class="prompt">What is my financial health?</button>
               <button class="prompt">Show my food spending</button>
             </div>
             <div class="chat-input-row">
-              <input id="chat-input" type="text" placeholder="Ask Saarthi anything about your demo finances…" autocomplete="off">
+              <input id="chat-input" type="text" placeholder="Ask Saarthi anything about your finances…" autocomplete="off">
               <button id="send-message" class="send-btn">Send ↑</button>
             </div>
           </article>
+        </section>
+
+        <section class="section" id="workspace-section">
+          <div class="section-intro">
+            <span class="section-kicker">SAARTHI WORKSPACE</span>
+            <h2>Give Saarthi your financial context.</h2>
+            <p>You can upload an Excel/CSV file or paste your data. No bank connection is required.</p>
+          </div>
+          <div class="workspace-grid">
+            <article class="panel upload-panel">
+              <div class="panel-head"><div><span class="section-kicker">STEP 1</span><h3>What are you trying to figure out?</h3></div></div>
+              <textarea id="problem-input" class="problem-input" placeholder="Example: I earn ₹55,000 a month. I want to save ₹10,000 and buy a ₹45,000 laptop in 3 months. Tell me if it is realistic and what I should change."></textarea>
+              <div class="upload-drop" id="upload-drop">
+                <input id="data-file" type="file" accept=".xlsx,.xls,.csv,.json,.txt" hidden>
+                <div class="upload-icon">↑</div>
+                <strong>Drop your Excel/CSV here</strong>
+                <span>or click to browse · XLSX, XLS, CSV, JSON, TXT</span>
+                <button class="btn btn-dark" id="choose-file" type="button">Choose file</button>
+              </div>
+              <div class="paste-row"><span>Or paste a table / numbers</span><button class="text-btn" id="use-sample" type="button">Load example</button></div>
+              <textarea id="data-input" class="data-input" placeholder="Paste rows, a budget, or transactions here…"></textarea>
+              <div class="workspace-actions"><button class="btn btn-dark" id="analyze-data" type="button">Analyze with Saarthi ✦</button><button class="btn btn-ghost-dark" id="reset-data" type="button">Reset</button></div>
+              <div id="upload-status" class="upload-status"></div>
+            </article>
+            <article class="panel context-panel">
+              <div class="panel-head"><div><span class="section-kicker">STEP 2</span><h3>What Saarthi understands</h3></div><span class="mini-badge" id="context-badge">Waiting for data</span></div>
+              <div id="context-summary" class="context-summary"><div class="empty-state"><div>✦</div><strong>Your financial context will appear here.</strong><p>Saarthi will detect the structure, calculate the numbers, audit the rows and tell you what needs human review.</p></div></div>
+            </article>
+          </div>
+          <div id="analysis-output" class="analysis-output hidden"></div>
         </section>
 
         <section class="section" id="banks-section">
