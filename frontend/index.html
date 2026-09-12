@@ -48,6 +48,7 @@
         <button class="nav-item" data-section="chat"><span>✦</span>Ask Saarthi</button>
         <button class="nav-item" data-section="banks"><span>▣</span>Connect Bank</button>
         <button class="nav-item" data-section="workspace"><span>⌁</span>My Data</button>
+        <button class="nav-item" data-section="kyc"><span>▤</span>Bank Forms & KYC</button>
       </nav>
 
       <div class="demo-card">
@@ -65,6 +66,7 @@
           <p id="page-subtitle">Your money, understood simply.</p>
         </div>
         <div class="topbar-right">
+          <label class="global-language">🌐 <select id="language-select" aria-label="Language"><option value="en">English</option><option value="hi">हिन्दी</option><option value="gu">ગુજરાતી</option></select></label>
           <span class="simulation-pill">● DEMO · SIMULATION</span>
           <div class="avatar">P</div>
         </div>
@@ -72,122 +74,28 @@
 
       <div class="content">
         <section class="section active" id="dashboard-section">
-          <div class="hero">
-            <div class="hero-copy">
-              <span class="eyebrow">YOUR FINANCIAL COMPANION</span>
-              <h2>You bring the data.<br>Saarthi figures out the decision.</h2>
-              <p>Upload a budget, spreadsheet or transaction file. Ask a question. Saarthi understands the numbers, does the maths, finds patterns and explains what you should consider next.</p>
-              <div class="hero-actions">
-                <button class="btn btn-light" data-go="chat">Ask Saarthi <span>→</span></button>
-                <button class="btn btn-ghost" data-go="analytics">View insights</button>
-              </div>
-            </div>
-            <div class="hero-orbit">
-              <div class="orbit-ring ring-one"></div>
-              <div class="orbit-ring ring-two"></div>
-              <div class="orbit-core">S</div>
-            </div>
+          <div class="section-intro menu-intro">
+            <span class="section-kicker">WELCOME TO SAARTHI</span>
+            <h2>What do you want to figure out?</h2>
+            <p>Choose a job. Saarthi will use the financial context you provide and build the analysis around your question.</p>
           </div>
-
-          <div class="stats-grid">
-            <article class="stat-card">
-              <div class="stat-icon">₹</div>
-              <div class="stat-label">Current balance</div>
-              <div class="stat-value" id="balance">—</div>
-              <div class="stat-note">Simulated account balance</div>
-            </article>
-            <article class="stat-card">
-              <div class="stat-icon up">↗</div>
-              <div class="stat-label">Income</div>
-              <div class="stat-value" id="income">—</div>
-              <div class="stat-note">Total detected income</div>
-            </article>
-            <article class="stat-card">
-              <div class="stat-icon down">↘</div>
-              <div class="stat-label">Expenses</div>
-              <div class="stat-value" id="expenses">—</div>
-              <div class="stat-note">Across demo transactions</div>
-            </article>
-            <article class="stat-card">
-              <div class="stat-icon">✦</div>
-              <div class="stat-label">Net savings</div>
-              <div class="stat-value" id="savings">—</div>
-              <div class="stat-note" id="savings-rate">Calculating…</div>
-            </article>
+          <div class="data-status-card">
+            <div><span class="status-dot"></span><div><strong id="home-data-status">No financial data loaded</strong><p id="home-data-detail">Upload Excel/CSV once. Saarthi keeps it as your working financial context.</p></div></div>
+            <button class="btn btn-dark" data-go="workspace" data-feature="data">Manage data →</button>
           </div>
-
-          <div class="dashboard-grid">
-            <article class="panel trend-panel">
-              <div class="panel-head">
-                <div>
-                  <span class="section-kicker">SPENDING TREND</span>
-                  <h3>Monthly expenses</h3>
-                </div>
-                <span class="mini-badge">3 months</span>
-              </div>
-              <div class="chart" id="monthly-chart">
-                <div class="loading">Loading financial data…</div>
-              </div>
-            </article>
-
-            <article class="panel health-panel">
-              <div class="panel-head">
-                <div>
-                  <span class="section-kicker">FINANCIAL HEALTH</span>
-                  <h3>Your score</h3>
-                </div>
-              </div>
-              <div class="health-wrap">
-                <div class="health-ring" id="health-ring" style="--score:0%">
-                  <div class="health-inner">
-                    <strong id="health-score">—</strong>
-                    <span>/ 100</span>
-                  </div>
-                </div>
-                <div>
-                  <h4 id="health-label">Calculating…</h4>
-                  <p>Based on savings behavior and spending patterns.</p>
-                </div>
-              </div>
-            </article>
+          <div class="feature-grid">
+            <button class="feature-card" data-feature="overview"><span class="feature-icon">◒</span><strong>Understand My Finances</strong><p>See income, expenses, savings, trends and the story behind the numbers.</p><span class="feature-cta">Open intelligence →</span></button>
+            <button class="feature-card" data-feature="audit"><span class="feature-icon">⌕</span><strong>Audit My Data</strong><p>Find duplicates, anomalies, recurring payments, uncategorized rows and review points.</p><span class="feature-cta">Run audit →</span></button>
+            <button class="feature-card" data-feature="compare"><span class="feature-icon">↔</span><strong>Compare Months</strong><p>Understand what changed between months and why your surplus moved.</p><span class="feature-cta">Compare periods →</span></button>
+            <button class="feature-card" data-feature="reconcile"><span class="feature-icon">✓</span><strong>Find Missing Hisab</strong><p>Look for gaps, incomplete periods, unexplained rows and reconciliation issues.</p><span class="feature-cta">Check the books →</span></button>
+            <button class="feature-card" data-feature="goal"><span class="feature-icon">◎</span><strong>Plan a Goal</strong><p>Tell Saarthi a target and deadline. Get the required monthly plan and gap.</p><span class="feature-cta">Plan a goal →</span></button>
+            <button class="feature-card" data-feature="afford"><span class="feature-icon">₹</span><strong>Can I Afford This?</strong><p>Test a purchase against your surplus, safety margin and upcoming goals.</p><span class="feature-cta">Test affordability →</span></button>
+            <button class="feature-card" data-feature="decision"><span class="feature-icon">⌁</span><strong>Decision Lab</strong><p>Simulate salary changes, cost cuts, purchases or business revenue changes.</p><span class="feature-cta">Run a scenario →</span></button>
+            <button class="feature-card featured" data-feature="ask"><span class="feature-icon">✦</span><strong>Ask Saarthi AI</strong><p>Ask anything in plain language. Saarthi reasons from your actual data.</p><span class="feature-cta">Start conversation →</span></button>
+            <button class="feature-card" data-feature="brief"><span class="feature-icon">▤</span><strong>Financial Brief</strong><p>Create a professional summary of findings, risks and items needing human review.</p><span class="feature-cta">Build brief →</span></button>
+            <button class="feature-card featured" data-feature="kyc"><span class="feature-icon">▤</span><strong>Bank Forms & KYC</strong><p>Turn long bank forms and procedures into a guided checklist, plain-language explanations and copy-ready answers.</p><span class="feature-cta">Simplify KYC →</span></button>
           </div>
-
-          <div class="dashboard-grid lower">
-            <article class="panel">
-              <div class="panel-head">
-                <div>
-                  <span class="section-kicker">SPENDING BREAKDOWN</span>
-                  <h3>Where your money goes</h3>
-                </div>
-                <button class="text-btn" data-go="analytics">Full analytics →</button>
-              </div>
-              <div id="dashboard-categories" class="categories">
-                <div class="loading">Loading categories…</div>
-              </div>
-            </article>
-
-            <article class="panel">
-              <div class="panel-head">
-                <div>
-                  <span class="section-kicker">RECENT ACTIVITY</span>
-                  <h3>Latest transactions</h3>
-                </div>
-                <button class="text-btn" data-go="transactions">View all →</button>
-              </div>
-              <div id="recent-transactions" class="transactions">
-                <div class="loading">Loading transactions…</div>
-              </div>
-            </article>
-          </div>
-
-          <article class="insight-card" id="main-insight">
-            <div class="insight-symbol">✦</div>
-            <div>
-              <span class="section-kicker">SAARTHI INSIGHT</span>
-              <h3>Finding your best savings opportunity…</h3>
-              <p>SAARTHI is analyzing your simulated financial activity.</p>
-            </div>
-          </article>
+          <div class="trust-strip"><strong>Built for people and professionals.</strong><span>Individuals can ask questions. Business owners and CAs can start with Excel and investigate the numbers.</span></div>
         </section>
 
         <section class="section" id="analytics-section">
@@ -226,7 +134,7 @@
 
         <section class="section" id="transactions-section">
           <div class="section-intro">
-            <span class="section-kicker">SIMULATED ACTIVITY</span>
+            <span class="section-kicker">SUPPLIED DATA</span>
             <h2>Your data.</h2>
             <p>A transparent view of the information Saarthi is currently using.</p>
           </div>
@@ -269,33 +177,70 @@
         </section>
 
         <section class="section" id="workspace-section">
-          <div class="section-intro">
-            <span class="section-kicker">SAARTHI WORKSPACE</span>
-            <h2>Give Saarthi your financial context.</h2>
-            <p>You can upload an Excel/CSV file or paste your data. No bank connection is required.</p>
+          <div class="section-intro workspace-top">
+            <div><span class="section-kicker">SAARTHI WORKSPACE</span><h2 id="workspace-title">Financial Intelligence</h2><p id="workspace-subtitle">Give Saarthi your data, then choose whether you want to work with structured data or AI.</p></div>
+            <div class="mode-switch"><button class="mode-btn active" data-mode="data">📊 Excel / Data</button><button class="mode-btn" data-mode="ai">🤖 AI Bot</button></div>
           </div>
           <div class="workspace-grid">
-            <article class="panel upload-panel">
-              <div class="panel-head"><div><span class="section-kicker">STEP 1</span><h3>What are you trying to figure out?</h3></div></div>
-              <textarea id="problem-input" class="problem-input" placeholder="Example: I earn ₹55,000 a month. I want to save ₹10,000 and buy a ₹45,000 laptop in 3 months. Tell me if it is realistic and what I should change."></textarea>
-              <div class="upload-drop" id="upload-drop">
-                <input id="data-file" type="file" accept=".xlsx,.xls,.csv,.json,.txt" hidden>
-                <div class="upload-icon">↑</div>
-                <strong>Drop your Excel/CSV here</strong>
-                <span>or click to browse · XLSX, XLS, CSV, JSON, TXT</span>
-                <button class="btn btn-dark" id="choose-file" type="button">Choose file</button>
-              </div>
+            <article class="panel upload-panel" id="data-mode-panel">
+              <div class="panel-head"><div><span class="section-kicker">DATA MODE</span><h3>Give Saarthi your financial data</h3></div><span class="mini-badge">Excel • CSV • JSON</span></div>
+              <textarea id="problem-input" class="problem-input" placeholder="Tell Saarthi what you want to figure out. Example: Compare my last 6 months and tell me why savings fell."></textarea>
+              <div class="upload-drop" id="upload-drop"><input id="data-file" type="file" accept=".xlsx,.xls,.csv,.json,.txt" hidden><div class="upload-icon">↑</div><strong>Drop your Excel/CSV here</strong><span>or click to browse · XLSX, XLS, CSV, JSON, TXT</span><button class="btn btn-dark" id="choose-file" type="button">Choose file</button></div>
               <div class="paste-row"><span>Or paste a table / numbers</span><button class="text-btn" id="use-sample" type="button">Load example</button></div>
               <textarea id="data-input" class="data-input" placeholder="Paste rows, a budget, or transactions here…"></textarea>
               <div class="workspace-actions"><button class="btn btn-dark" id="analyze-data" type="button">Analyze with Saarthi ✦</button><button class="btn btn-ghost-dark" id="reset-data" type="button">Reset</button></div>
               <div id="upload-status" class="upload-status"></div>
             </article>
+            <article class="panel ai-mode-panel hidden" id="ai-mode-panel">
+              <div class="panel-head"><div><span class="section-kicker">AI MODE</span><h3>Tell Saarthi what you need</h3></div><span class="mini-badge">Natural language</span></div>
+              <div class="ai-big-prompt">“Compare my last 6 months, find anything unusual, and tell me what I should review first.”</div>
+              <div class="quick-ai-grid"><button data-ai-prompt="Compare my past months and tell me what changed.">Compare months</button><button data-ai-prompt="Find duplicates, unusual transactions and missing hisab.">Audit my data</button><button data-ai-prompt="Why did my savings change?"><span>Why did savings change?</span></button><button data-ai-prompt="Give me a professional financial brief.">Create a brief</button></div>
+              <button class="btn btn-dark full-btn" data-go="chat">Open Ask Saarthi →</button>
+            </article>
             <article class="panel context-panel">
-              <div class="panel-head"><div><span class="section-kicker">STEP 2</span><h3>What Saarthi understands</h3></div><span class="mini-badge" id="context-badge">Waiting for data</span></div>
-              <div id="context-summary" class="context-summary"><div class="empty-state"><div>✦</div><strong>Your financial context will appear here.</strong><p>Saarthi will detect the structure, calculate the numbers, audit the rows and tell you what needs human review.</p></div></div>
+              <div class="panel-head"><div><span class="section-kicker">CONTEXT</span><h3>What Saarthi understands</h3></div><span class="mini-badge" id="context-badge">Waiting for data</span></div>
+              <div id="context-summary" class="context-summary"><div class="empty-state"><div>✦</div><strong>Your financial context will appear here.</strong><p>Saarthi will detect structure, calculate the numbers, audit the rows and tell you what needs human review.</p></div></div>
             </article>
           </div>
+          <div class="feature-workspace-nav" id="feature-workspace-nav">
+            <button data-feature="overview">Overview</button><button data-feature="audit">Audit</button><button data-feature="compare">Compare</button><button data-feature="reconcile">Missing Hisab</button><button data-feature="goal">Goals</button><button data-feature="afford">Affordability</button><button data-feature="decision">Decision Lab</button><button data-feature="brief">Financial Brief</button><button data-feature="kyc">Bank Forms & KYC</button>
+          </div>
           <div id="analysis-output" class="analysis-output hidden"></div>
+        </section>
+
+
+        <section class="section" id="kyc-section">
+          <div class="section-intro">
+            <span class="section-kicker">BANKING MADE SIMPLE</span>
+            <h2>Long forms. Short process.</h2>
+            <p>Saarthi can explain a bank form, break a procedure into steps, prepare a checklist and generate copy-ready answers from non-sensitive information. This demo never asks for passwords, OTPs, card details or government ID numbers.</p>
+          </div>
+          <div class="kyc-layout">
+            <article class="panel">
+              <div class="panel-head"><div><span class="section-kicker">KYC / BANK PROCEDURE ASSISTANT</span><h3>What are you trying to complete?</h3></div><span class="mini-badge">AI guided</span></div>
+              <div class="kyc-quick-grid">
+                <button class="kyc-task" data-kyc-task="Complete a bank KYC update">Update KYC</button>
+                <button class="kyc-task" data-kyc-task="Open a savings account">Open account</button>
+                <button class="kyc-task" data-kyc-task="Understand a long bank application form">Understand form</button>
+                <button class="kyc-task" data-kyc-task="Prepare documents for a bank procedure">Prepare documents</button>
+              </div>
+              <textarea id="kyc-form-text" class="problem-input" placeholder="Paste the bank's instructions or form questions here…"></textarea>
+              <div class="workspace-actions"><button class="btn btn-dark" id="kyc-simplify" type="button">Simplify with Saarthi ✦</button><button class="btn btn-ghost-dark" id="kyc-reset" type="button">Clear</button></div>
+              <div id="kyc-result" class="kyc-result"><div class="empty-state compact"><strong>Nothing to decode yet.</strong><p>Paste instructions or choose a common task. Saarthi will turn it into steps, required information and questions to ask the bank.</p></div></div>
+            </article>
+            <article class="panel">
+              <div class="panel-head"><div><span class="section-kicker">KYC CHECKLIST</span><h3>Your progress</h3></div><span class="mini-badge">Synthetic demo</span></div>
+              <div class="kyc-checklist" id="kyc-checklist">
+                <label><input type="checkbox"> Identity information ready</label>
+                <label><input type="checkbox"> Address information ready</label>
+                <label><input type="checkbox"> Account / service purpose understood</label>
+                <label><input type="checkbox"> Bank-specific documents confirmed</label>
+                <label><input type="checkbox"> Final review completed</label>
+              </div>
+              <div class="feature-insight"><b>Important</b><p>Saarthi prepares and explains; the bank remains the final authority for KYC, eligibility, document acceptance and submission.</p></div>
+            </article>
+          </div>
+          <div class="feature-ai-card" id="kyc-ai-card"></div>
         </section>
 
         <section class="section" id="banks-section">
