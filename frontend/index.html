@@ -1,6 +1,702 @@
-<!doctype html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>SAARTHI — Your financial guide</title><link rel="stylesheet" href="style.css"></head>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>SAARTHI — Your AI Financial Guide</title>
+
+  <meta
+    name="description"
+    content="SAARTHI is an AI-powered personal finance intelligence platform."
+  />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
+
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+  />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+
 <body>
-<div id="app"></div><script src="app.js"></script>
-</body></html>
+
+  <!-- =====================================================
+       LANDING PAGE
+  ====================================================== -->
+
+  <section id="landingPage" class="public-page">
+
+    <nav class="landing-nav">
+
+      <div class="brand">
+        <div class="brand-mark">
+          <i class="fa-solid fa-route"></i>
+        </div>
+
+        <div>
+          <div class="brand-name">SAARTHI</div>
+          <div class="brand-subtitle">AI Finance Intelligence</div>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" onclick="showLogin()">
+        Try Demo
+        <i class="fa-solid fa-arrow-right"></i>
+      </button>
+
+    </nav>
+
+
+    <main class="hero">
+
+      <div class="hero-copy">
+
+        <div class="eyebrow">
+          <span class="pulse-dot"></span>
+          AI-powered financial intelligence
+        </div>
+
+        <h1>
+          Your money.<br />
+          <span>Your data.</span><br />
+          Your financial guide.
+        </h1>
+
+        <p>
+          SAARTHI transforms your transaction history into simple,
+          intelligent financial insights — helping you understand,
+          plan and save better.
+        </p>
+
+        <div class="hero-actions">
+
+          <button class="btn btn-primary btn-large" onclick="showLogin()">
+            Explore SAARTHI
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+
+          <button class="btn btn-secondary btn-large" onclick="scrollToHow()">
+            How it works
+          </button>
+
+        </div>
+
+        <div class="demo-notice">
+          <i class="fa-solid fa-shield-halved"></i>
+          Hackathon demo · Uses 100% synthetic financial data
+        </div>
+
+      </div>
+
+
+      <div class="hero-visual">
+
+        <div class="floating-card floating-card-top">
+          <div class="mini-icon success">
+            <i class="fa-solid fa-arrow-trend-up"></i>
+          </div>
+
+          <div>
+            <small>Potential savings</small>
+            <strong>₹1,240</strong>
+          </div>
+        </div>
+
+
+        <div class="dashboard-preview">
+
+          <div class="preview-header">
+            <div>
+              <small>Good morning 👋</small>
+              <h3>Your financial overview</h3>
+            </div>
+
+            <div class="preview-avatar">
+              P
+            </div>
+          </div>
+
+          <div class="preview-balance">
+            <small>Available balance</small>
+            <strong>₹24,500</strong>
+
+            <div class="preview-change">
+              <i class="fa-solid fa-arrow-up"></i>
+              Healthy financial position
+            </div>
+          </div>
+
+
+          <div class="preview-stats">
+
+            <div>
+              <span>Income</span>
+              <strong>₹42,000</strong>
+            </div>
+
+            <div>
+              <span>Expenses</span>
+              <strong>₹14,200</strong>
+            </div>
+
+            <div>
+              <span>Savings</span>
+              <strong>₹27,800</strong>
+            </div>
+
+          </div>
+
+
+          <div class="preview-chart">
+
+            <div class="chart-label">
+              <span>Spending trend</span>
+              <span>This month</span>
+            </div>
+
+            <div class="fake-chart">
+
+              <div class="chart-bar" style="height:35%"></div>
+              <div class="chart-bar" style="height:50%"></div>
+              <div class="chart-bar" style="height:42%"></div>
+              <div class="chart-bar" style="height:68%"></div>
+              <div class="chart-bar" style="height:55%"></div>
+              <div class="chart-bar active" style="height:78%"></div>
+              <div class="chart-bar" style="height:62%"></div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div class="floating-card floating-card-bottom">
+
+          <div class="ai-avatar">
+            <i class="fa-solid fa-sparkles"></i>
+          </div>
+
+          <div>
+            <small>SAARTHI AI</small>
+            <strong>You're on track 🎯</strong>
+          </div>
+
+        </div>
+
+      </div>
+
+    </main>
+
+
+    <section id="howSection" class="how-section">
+
+      <div class="section-heading">
+
+        <span class="eyebrow">
+          SIMPLE · SECURE · SMART
+        </span>
+
+        <h2>
+          From transactions to<br />
+          <span>financial clarity.</span>
+        </h2>
+
+      </div>
+
+
+      <div class="steps">
+
+        <div class="step-card">
+
+          <div class="step-number">01</div>
+
+          <div class="step-icon">
+            <i class="fa-solid fa-building-columns"></i>
+          </div>
+
+          <h3>Connect</h3>
+
+          <p>
+            Connect a simulated bank account and choose
+            what financial information SAARTHI can access.
+          </p>
+
+        </div>
+
+
+        <div class="step-line"></div>
+
+
+        <div class="step-card">
+
+          <div class="step-number">02</div>
+
+          <div class="step-icon">
+            <i class="fa-solid fa-chart-pie"></i>
+          </div>
+
+          <h3>Understand</h3>
+
+          <p>
+            SAARTHI analyzes transactions, spending categories,
+            recurring payments and financial patterns.
+          </p>
+
+        </div>
+
+
+        <div class="step-line"></div>
+
+
+        <div class="step-card">
+
+          <div class="step-number">03</div>
+
+          <div class="step-icon">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+          </div>
+
+          <h3>Get guidance</h3>
+
+          <p>
+            Ask SAARTHI questions and receive personalized,
+            easy-to-understand financial recommendations.
+          </p>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <footer class="landing-footer">
+
+      <div class="brand">
+
+        <div class="brand-mark">
+          <i class="fa-solid fa-route"></i>
+        </div>
+
+        <div>
+          <div class="brand-name">SAARTHI</div>
+          <div class="brand-subtitle">
+            Your AI financial guide
+          </div>
+        </div>
+
+      </div>
+
+      <p>
+        Built for HackOut · Demo environment · No real transactions
+      </p>
+
+    </footer>
+
+  </section>
+
+
+
+  <!-- =====================================================
+       LOGIN
+  ====================================================== -->
+
+  <section id="loginPage" class="auth-page hidden">
+
+    <div class="auth-card">
+
+      <button class="back-button" onclick="showLanding()">
+        <i class="fa-solid fa-arrow-left"></i>
+        Back
+      </button>
+
+      <div class="auth-logo">
+        <div class="brand-mark">
+          <i class="fa-solid fa-route"></i>
+        </div>
+      </div>
+
+      <h1>Welcome to SAARTHI</h1>
+
+      <p>
+        Enter the demo environment and let SAARTHI
+        understand your finances.
+      </p>
+
+      <form onsubmit="startDemo(event)">
+
+        <label>
+          Your name
+        </label>
+
+        <input
+          id="userName"
+          type="text"
+          placeholder="Enter your name"
+          required
+        />
+
+        <label>
+          Email
+        </label>
+
+        <input
+          id="userEmail"
+          type="email"
+          placeholder="you@example.com"
+          required
+        />
+
+        <button class="btn btn-primary btn-full">
+          Continue with Demo
+          <i class="fa-solid fa-arrow-right"></i>
+        </button>
+
+      </form>
+
+      <div class="demo-security">
+        <i class="fa-solid fa-lock"></i>
+        Demo only · No credentials are stored
+      </div>
+
+    </div>
+
+  </section>
+
+
+
+  <!-- =====================================================
+       APP
+  ====================================================== -->
+
+  <section id="appPage" class="app-page hidden">
+
+    <!-- Mobile overlay -->
+    <div id="sidebarOverlay" class="sidebar-overlay" onclick="closeSidebar()"></div>
+
+
+    <!-- SIDEBAR -->
+
+    <aside id="sidebar" class="sidebar">
+
+      <div class="sidebar-brand">
+
+        <div class="brand-mark">
+          <i class="fa-solid fa-route"></i>
+        </div>
+
+        <div>
+          <div class="brand-name">SAARTHI</div>
+          <div class="brand-subtitle">AI Finance</div>
+        </div>
+
+        <button class="mobile-close" onclick="closeSidebar()">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+
+      </div>
+
+
+      <div class="demo-pill">
+        <span></span>
+        SIMULATION MODE
+      </div>
+
+
+      <nav class="side-nav">
+
+        <button
+          class="nav-item active"
+          data-page="overview"
+          onclick="navigate('overview')"
+        >
+          <i class="fa-solid fa-house"></i>
+          <span>Overview</span>
+        </button>
+
+        <button
+          class="nav-item"
+          data-page="analytics"
+          onclick="navigate('analytics')"
+        >
+          <i class="fa-solid fa-chart-line"></i>
+          <span>Analytics</span>
+        </button>
+
+        <button
+          class="nav-item"
+          data-page="transactions"
+          onclick="navigate('transactions')"
+        >
+          <i class="fa-solid fa-receipt"></i>
+          <span>Transactions</span>
+        </button>
+
+        <button
+          class="nav-item"
+          data-page="goals"
+          onclick="navigate('goals')"
+        >
+          <i class="fa-solid fa-bullseye"></i>
+          <span>Savings Goals</span>
+        </button>
+
+        <button
+          class="nav-item"
+          data-page="alerts"
+          onclick="navigate('alerts')"
+        >
+          <i class="fa-solid fa-bell"></i>
+          <span>Smart Alerts</span>
+          <span class="nav-badge">3</span>
+        </button>
+
+        <button
+          class="nav-item"
+          data-page="payments"
+          onclick="navigate('payments')"
+        >
+          <i class="fa-solid fa-credit-card"></i>
+          <span>Payments</span>
+        </button>
+
+
+        <div class="nav-divider"></div>
+
+
+        <button
+          class="nav-item"
+          data-page="bank"
+          onclick="navigate('bank')"
+        >
+          <i class="fa-solid fa-building-columns"></i>
+          <span>Connected Bank</span>
+        </button>
+
+        <button
+          class="nav-item"
+          data-page="settings"
+          onclick="navigate('settings')"
+        >
+          <i class="fa-solid fa-gear"></i>
+          <span>Settings</span>
+        </button>
+
+      </nav>
+
+
+      <div class="sidebar-bottom">
+
+        <div class="sidebar-help">
+
+          <div class="help-icon">
+            <i class="fa-solid fa-circle-question"></i>
+          </div>
+
+          <div>
+            <strong>Need help?</strong>
+            <small>Ask Saarthi AI</small>
+          </div>
+
+        </div>
+
+
+        <button class="profile-card" onclick="navigate('settings')">
+
+          <div id="profileAvatar" class="profile-avatar">
+            P
+          </div>
+
+          <div class="profile-info">
+            <strong id="profileName">Demo User</strong>
+            <small>Demo account</small>
+          </div>
+
+          <i class="fa-solid fa-chevron-right"></i>
+
+        </button>
+
+      </div>
+
+    </aside>
+
+
+
+    <!-- MAIN -->
+
+    <main class="main-content">
+
+      <header class="app-header">
+
+        <button class="menu-button" onclick="openSidebar()">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+
+        <div class="header-title">
+
+          <span id="pageEyebrow">OVERVIEW</span>
+
+          <h2 id="pageTitle">
+            Good morning 👋
+          </h2>
+
+        </div>
+
+
+        <div class="header-actions">
+
+          <button
+            class="icon-button notification-button"
+            onclick="navigate('alerts')"
+          >
+            <i class="fa-regular fa-bell"></i>
+            <span></span>
+          </button>
+
+          <button
+            class="header-profile"
+            onclick="navigate('settings')"
+          >
+            <div id="headerAvatar">P</div>
+          </button>
+
+        </div>
+
+      </header>
+
+
+      <!-- PAGE CONTENT -->
+
+      <div id="pageContent" class="page-content"></div>
+
+    </main>
+
+
+
+    <!-- ASK SAARTHI FLOATING BUTTON -->
+
+    <button
+      id="askSaarthiButton"
+      class="ask-saarthi-button"
+      onclick="toggleChat()"
+    >
+
+      <div class="ask-icon">
+        <i class="fa-solid fa-sparkles"></i>
+      </div>
+
+      <span>Ask Saarthi</span>
+
+    </button>
+
+
+
+    <!-- CHAT WINDOW -->
+
+    <div id="chatWindow" class="chat-window hidden">
+
+      <div class="chat-header">
+
+        <div class="chat-agent">
+
+          <div class="ai-avatar">
+            <i class="fa-solid fa-sparkles"></i>
+          </div>
+
+          <div>
+            <strong>Ask Saarthi</strong>
+            <small>
+              <span class="online-dot"></span>
+              AI financial guide
+            </small>
+          </div>
+
+        </div>
+
+        <button onclick="toggleChat()">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+
+      </div>
+
+
+      <div id="chatMessages" class="chat-messages">
+
+        <div class="chat-message bot">
+
+          <div class="chat-avatar">
+            <i class="fa-solid fa-sparkles"></i>
+          </div>
+
+          <div class="message-bubble">
+            Hi! I'm Saarthi 👋<br /><br />
+
+            I can help you understand your spending,
+            savings, transactions and recurring bills.
+
+            <div class="suggestion-chips">
+
+              <button onclick="askSuggested('Where am I spending the most?')">
+                Where am I spending most?
+              </button>
+
+              <button onclick="askSuggested('How can I save money?')">
+                How can I save money?
+              </button>
+
+              <button onclick="askSuggested('What are my recurring bills?')">
+                Recurring bills?
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div class="chat-input-area">
+
+        <input
+          id="chatInput"
+          type="text"
+          placeholder="Ask about your finances..."
+          onkeydown="handleChatKey(event)"
+        />
+
+        <button onclick="sendChat()">
+          <i class="fa-solid fa-paper-plane"></i>
+        </button>
+
+      </div>
+
+      <div class="chat-disclaimer">
+        Demo AI · Responses use synthetic financial data
+      </div>
+
+    </div>
+
+
+  </section>
+
+
+  <!-- Toast -->
+  <div id="toast" class="toast"></div>
+
+
+  <script src="app.js"></script>
+
+</body>
+</html>
