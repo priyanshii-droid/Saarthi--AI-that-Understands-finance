@@ -1,3 +1,35 @@
+
+const LANG = {
+ en:{title:"Financial overview",sub:"Your money, understood simply.",dashboard:"Dashboard",analytics:"Analytics",transactions:"Transactions",chat:"Ask Saarthi",banks:"Connect Bank",authTitle:"Your money, understood.",authSub:"Sign in to continue to your personal financial intelligence dashboard.",email:"Email address",password:"Password",signin:"Sign in securely →",demo:"Continue with demo account",welcome:"Hi! I'm Saarthi 👋 Ask me about your spending, savings, bills or financial health."},
+ hi:{title:"वित्तीय अवलोकन",sub:"आपके पैसे को सरलता से समझें।",dashboard:"डैशबोर्ड",analytics:"विश्लेषण",transactions:"लेन-देन",chat:"सारथी से पूछें",banks:"बैंक जोड़ें",authTitle:"आपके पैसे को समझें।",authSub:"अपने व्यक्तिगत वित्तीय डैशबोर्ड पर जाने के लिए साइन इन करें।",email:"ईमेल पता",password:"पासवर्ड",signin:"सुरक्षित साइन इन →",demo:"डेमो अकाउंट से जारी रखें",welcome:"नमस्ते! मैं सारथी हूँ 👋 अपने खर्च, बचत, बिल या वित्तीय स्वास्थ्य के बारे में पूछें।"},
+ gu:{title:"નાણાકીય ઝાંખી",sub:"તમારા પૈસાને સરળતાથી સમજો.",dashboard:"ડેશબોર્ડ",analytics:"વિશ્લેષણ",transactions:"વ્યવહારો",chat:"સારથીને પૂછો",banks:"બેંક જોડો",authTitle:"તમારા પૈસાને સમજો.",authSub:"તમારા વ્યક્તિગત નાણાકીય ડેશબોર્ડમાં આગળ વધવા સાઇન ઇન કરો.",email:"ઈમેલ સરનામું",password:"પાસવર્ડ",signin:"સુરક્ષિત સાઇન ઇન →",demo:"ડેમો એકાઉન્ટ સાથે ચાલુ રાખો",welcome:"નમસ્તે! હું સારથી છું 👋 તમારા ખર્ચ, બચત, બિલ અથવા નાણાકીય સ્વાસ્થ્ય વિશે પૂછો."}
+};
+function applyLanguage(lang){
+  const t=LANG[lang]||LANG.en;
+  localStorage.setItem("saarthi_lang",lang);
+  setText("auth-title",t.authTitle);setText("auth-subtitle",t.authSub);setText("email-label",t.email);setText("password-label",t.password);setText("login-btn",t.signin);setText("demo-login",t.demo);
+  setText("page-title",t.title);setText("page-subtitle",t.sub);
+  const nav=document.querySelectorAll(".nav-item"); if(nav.length>=5){setTextEl(nav[0],t.dashboard);setTextEl(nav[1],t.analytics);setTextEl(nav[2],t.transactions);setTextEl(nav[3],t.chat);setTextEl(nav[4],t.banks);}
+  const sel=$("language-select"), authSel=$("auth-language"); if(sel)sel.value=lang;if(authSel)authSel.value=lang;
+  const first=$("chat-messages")?.querySelector(".message.ai"); if(first && first.dataset.default==="yes") first.textContent=t.welcome;
+}
+function setTextEl(el,text){const span=el?.querySelector("span");el.childNodes.forEach(n=>{if(n.nodeType===3)n.textContent="";}); if(span) el.appendChild(document.createTextNode(text));}
+function setupAuthAndExtras(){
+  const auth=$("auth-screen"), form=$("login-form"), demo=$("demo-login");
+  if(localStorage.getItem("saarthi_signed_in")==="1") auth.style.display="none";
+  const signIn=()=>{localStorage.setItem("saarthi_signed_in","1");auth.style.display="none";showToast("Signed in successfully — welcome to SAARTHI.");};
+  form?.addEventListener("submit",e=>{e.preventDefault();signIn();});
+  demo?.addEventListener("click",signIn);
+  $("auth-language")?.addEventListener("change",e=>applyLanguage(e.target.value));
+  $("language-select")?.addEventListener("change",e=>applyLanguage(e.target.value));
+  $("profile-btn")?.addEventListener("click",e=>{e.stopPropagation();$("profile-menu")?.classList.toggle("open");});
+  $("notifications-btn")?.addEventListener("click",()=>showToast("You have 2 new financial insights. Bills are on track."));
+  $("logout-btn")?.addEventListener("click",()=>{localStorage.removeItem("saarthi_signed_in");location.reload();});
+  document.addEventListener("click",e=>{if(!e.target.closest(".profile-menu")&&!e.target.closest("#profile-btn"))$("profile-menu")?.classList.remove("open");});
+  applyLanguage(localStorage.getItem("saarthi_lang")||"en");
+}
+document.addEventListener("DOMContentLoaded",setupAuthAndExtras);
+
 const API_BASE = "https://saarthi-ai-that-understands-finance.onrender.com";
 
 const $ = (id) => document.getElementById(id);
@@ -347,24 +379,98 @@ function setupChat() {
   });
 }
 
+let chatContext = { lastTopic: null, history: [] };
+
+function smartReply(message) {
+  const m=message.toLowerCase();
+  const d=dashboardData || {};
+  const cats=d.categories || {Food:2400,Shopping:3200,Transport:1800,Bills:4200,Other:2600};
+  const totalExp=Number(d.totalExpenses || Object.values(cats).reduce((a,b)=>a+Number(b||0),0));
+  const income=Number(d.totalIncome || 45000);
+  const savings=Number(d.netSavings ?? income-totalExp);
+  let reply="", topic="general", chips=[];
+
+  const money=n=>"₹"+Math.round(Number(n)||0).toLocaleString("en-IN");
+  const top=Object.entries(cats).sort((a,b)=>Number(b[1])-Number(a[1]))[0];
+
+  if(/hello|hi|hey|namaste|start|help|what can you do/.test(m)){
+    reply=`Hi! I'm Saarthi 👋 I can analyze your spending, savings, recurring bills, financial health, and even answer questions about a purchase. Try asking naturally — you don't need a fixed command.`;
+    chips=["Where do I overspend?","How can I save?","Check my financial health"];
+  } else if(/spend|expense|overspend|where.*money|biggest/.test(m)){
+    topic="spending";
+    reply=`Your largest spending category is ${top[0]} at ${money(top[1])}. Total tracked expenses are about ${money(totalExp)}. ${Number(top[1])>totalExp*.3?"That category is worth watching because it makes up a significant share of your spending.":"Your spending is fairly distributed across categories."}`;
+    chips=["How do I reduce it?","Compare my spending","What can I save?"];
+  } else if(/food|restaurant|delivery|eating/.test(m)){
+    topic="food";
+    const food=Number(cats.Food||2400);
+    reply=`You've spent about ${money(food)} on Food. A 25% reduction would free roughly ${money(food*.25)} this month. The easiest win is to set a weekly food limit and review delivery purchases.`;
+    chips=["Set a food goal","Show another category","How much can I save?"];
+  } else if(/save|saving|savings|cut|reduce|budget/.test(m)){
+    topic="saving";
+    reply=`Based on your demo cash flow, you're saving around ${money(savings)}. A practical next step is to target ${money(Math.max(500,savings*.1))} of additional monthly savings by trimming your top discretionary categories.`;
+    chips=["Where should I cut?","Make me a plan","Check my health"];
+  } else if(/health|score|financial.*fit|doing.*financially/.test(m)){
+    topic="health";
+    const score=Math.max(0,Math.min(100,Math.round(65+(savings/income)*35)));
+    reply=`Your demo Financial Health Score is ${score}/100. Your strongest signal is positive cash flow; your next opportunity is controlling discretionary spending and keeping recurring bills predictable.`;
+    chips=["Why this score?","How can I improve it?","Analyze my spending"];
+  } else if(/income|salary|earn|cash flow|cashflow/.test(m)){
+    topic="income";
+    reply=`Your simulated monthly income is about ${money(income)}, with tracked expenses around ${money(totalExp)}. That leaves approximately ${money(savings)} in net savings.`;
+    chips=["How much can I save?","Show expenses","Financial health"];
+  } else if(/bill|recurring|subscription|utility|mobile/.test(m)){
+    topic="bills";
+    reply=`I found recurring commitments in your demo data. These are useful to review because small recurring charges can quietly reduce monthly savings. Open Transactions to inspect them.`;
+    chips=["Show transactions","How can I save?","Financial health"];
+  } else if(/transaction|purchase|spent on|merchant|payment/.test(m)){
+    topic="transactions";
+    reply=`Your Transactions section contains the simulated activity behind my analysis. I can help you interpret patterns, categories, and unusual spending without exposing any real banking information.`;
+    chips=["Where do I overspend?","Analyze my month","Find recurring bills"];
+  } else if(/afford|buy|purchase|₹|rs\.?|rupee/.test(m)){
+    topic="affordability";
+    reply=`I can help with an affordability check. Tell me the approximate purchase amount and what it is for. I'll compare it with your simulated monthly cash flow and savings capacity.`;
+    chips=["Can I afford ₹5,000?","Can I afford ₹10,000?","Show my savings"];
+  } else if(/month|monthly|analy[sz]e|summary|overview|report/.test(m)){
+    topic="summary";
+    reply=`Here's your quick monthly picture: income ${money(income)}, expenses ${money(totalExp)}, and net savings ${money(savings)}. Your biggest category is ${top[0]}.`;
+    chips=["Where do I overspend?","How can I save?","Check my health"];
+  } else if(chatContext.lastTopic==="affordability" && /\d/.test(m)){
+    const amt=Number((m.match(/[\d,]+/)||["0"])[0].replace(/,/g,""));
+    reply=`For a ${money(amt)} purchase, your simulated net savings are around ${money(savings)}. It looks manageable if this is a one-time purchase, but I'd avoid it if it would reduce your planned emergency buffer.`;
+    chips=["What is my savings rate?","How can I save more?","Analyze my month"];
+  } else {
+    topic="general";
+    reply=`I can help with that. In this demo I can reason over your synthetic financial data — spending, savings, income, bills, transactions, affordability and financial health. Ask me in your own words and I'll keep the conversation context.`;
+    chips=["Analyze my month","Where do I spend most?","Can I afford ₹5,000?"];
+  }
+  chatContext.lastTopic=topic;
+  chatContext.history.push({user:message,reply});
+  return {reply,chips};
+}
+
+function renderChatChips(chips){
+  const box=$("chat-messages"); if(!box) return;
+  const old=box.querySelector(".ai-chips"); if(old) old.remove();
+  if(!chips?.length)return;
+  const wrap=document.createElement("div"); wrap.className="ai-chips";
+  chips.forEach(c=>{const b=document.createElement("button");b.className="prompt";b.textContent=c;b.addEventListener("click",()=>{$("chat-input").value=c;sendChat();});wrap.appendChild(b);});
+  box.appendChild(wrap);
+}
+
 async function sendChat() {
-  const input = $("chat-input");
-  if (!input) return;
-  const message = input.value.trim();
-  if (!message) return;
-
-  addMessage(message, "user");
-  input.value = "";
-  const thinking = addMessage("Thinking…", "ai");
-
-  try {
-    const result = await api("/api/chat", {
-      method:"POST",
-      body:JSON.stringify({message})
-    });
-    if (thinking) thinking.textContent = result.reply || localReply(message);
-  } catch {
-    if (thinking) thinking.textContent = localReply(message);
+  const input=$("chat-input"); if(!input)return;
+  const message=input.value.trim(); if(!message)return;
+  addMessage(message,"user"); input.value="";
+  const thinking=addMessage("Thinking…","ai");
+  try{
+    const result=await api("/api/chat",{method:"POST",body:JSON.stringify({message,history:chatContext.history.slice(-6)})});
+    const fallback=smartReply(message);
+    if(thinking) thinking.textContent=result.reply||fallback.reply;
+    renderChatChips(fallback.chips);
+  }catch{
+    const result=smartReply(message);
+    if(thinking) thinking.textContent=result.reply;
+    renderChatChips(result.chips);
   }
 }
 
@@ -388,6 +494,7 @@ function addMessage(text,type) {
   if (!box) return null;
   const el = document.createElement("div");
   el.className = `message ${type}`;
+  if(type==="ai" && !box.children.length) el.dataset.default="yes";
   el.textContent = text;
   box.appendChild(el);
   box.scrollTop = box.scrollHeight;
