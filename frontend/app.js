@@ -24,7 +24,51 @@ function renderTransactions(items,c){if(!c)return;const rows=items||[];if(c.tagN
 function renderAnalytics(a){if(!a)return;setText('analytics-income',money(a.totalIncome));setText('analytics-expenses',money(a.totalExpenses));setText('analytics-savings',money(a.netSavings));setText('analytics-rate',a.savingsRate+'%');renderCategories(a.categories,$('analytics-categories'));renderChart(a.monthly,$('analytics-chart'));const tm=$('top-merchants');if(tm)tm.innerHTML=(a.topMerchants||[]).map(x=>`<div class="transaction"><div class="transaction-info"><div class="transaction-name">${esc(x.merchant)}</div></div><div class="transaction-amount negative">${money(x.amount)}</div></div>`).join('')||'<div class="loading">No merchant data.</div>';const rc=$('recurring-list');if(rc)rc.innerHTML='<div class="loading">Recurring patterns are inferred from repeated descriptions when enough history exists.</div>'}
 async function loadState(){try{const j=await api('/api/state');state={hasData:j.hasData,analytics:j.analytics?.transactionCount?j.analytics:null};if(j.hasData){renderDashboard(j.analytics);renderContext(j.context);renderAnalysis(j.analytics);renderTransactions(j.transactions||[],$('transaction-table-body'));}else renderDashboard(null)}catch(e){renderDashboard(null)}}
 async function resetData(){try{await api('/api/reset',{method:'POST',body:'{}'});state={hasData:false,analytics:null};$('problem-input').value='';$('data-input').value='';$('data-file').value='';$('analysis-output').classList.add('hidden');$('upload-status').textContent='';renderContext();renderDashboard(null);showToast('Saarthi workspace reset.')}catch(e){showToast(e.message)}}
-function setupChat(){const send=async()=>{const input=$('chat-input'),q=input?.value.trim();if(!q)return;const box=$('chat-messages');box.innerHTML+=`<div class="message user">${esc(q)}</div>`;input.value='';const typing=document.createElement('div');typing.className='message ai';typing.textContent='Saarthi is thinking…';box.appendChild(typing);box.scrollTop=box.scrollHeight;try{const j=await api('/api/chat',{method:'POST',body:JSON.stringify({message:q})});typing.textContent=j.reply;if(j.analytics){state.analytics=j.analytics;state.hasData=true;renderDashboard(j.analytics);renderAnalysis(j.analytics)}}catch(e){typing.textContent=e.message}};$('send-message')?.addEventListener('click',send);$('chat-input')?.addEventListener('keydown',e=>{if(e.key==='Enter')send()});document.querySelectorAll('.prompt').forEach(p=>p.addEventListener('click',()=>{$('chat-input').value=p.textContent;send()}))}
+function setupChat(){
+  const fileInput=$('chat-file');
+  const attach=$('attach-chat-file');
+  const status=$('chat-upload-status');
+  const send=async()=>{
+    const input=$('chat-input'),q=input?.value.trim();
+    if(!q)return;
+    const box=$('chat-messages');
+    box.innerHTML+=`<div class="message user">${esc(q)}</div>`;
+    input.value='';
+    const typing=document.createElement('div');
+    typing.className='message ai'; typing.textContent='Saarthi is thinking…'; box.appendChild(typing); box.scrollTop=box.scrollHeight;
+    try{
+      const j=await api('/api/chat',{method:'POST',body:JSON.stringify({message:q})});
+      typing.textContent=j.reply||'I could not produce an answer.';
+      if(j.analytics){state.analytics=j.analytics;state.hasData=true;renderDashboard(j.analytics);renderAnalysis(j.analytics);}
+      if(j.needsData){status.textContent='Attach an Excel/CSV file above, or use My Data.';}
+    }catch(e){typing.textContent=e.message;}
+  };
+  const uploadFromChat=async(file)=>{
+    if(!file)return;
+    status.textContent=`Reading ${file.name}…`;
+    attach.disabled=true;
+    try{
+      const fd=new FormData(); fd.append('file',file); fd.append('problem','');
+      const j=await api('/api/import',{method:'POST',body:fd});
+      state={hasData:true,analytics:j.analytics};
+      renderDashboard(j.analytics); renderAnalysis(j.analytics); renderContext(j.context);
+      status.textContent=`✓ ${j.context.detected} transaction rows loaded from ${file.name}`;
+      const box=$('chat-messages');
+      box.innerHTML+=`<div class="message ai">I’ve loaded <b>${esc(file.name)}</b> and understood ${j.context.detected} transaction rows. What would you like me to investigate?</div>`;
+      box.scrollTop=box.scrollHeight;
+    }catch(e){status.textContent=e.message;}
+    finally{attach.disabled=false;fileInput.value='';}
+  };
+  attach?.addEventListener('click',()=>fileInput?.click());
+  fileInput?.addEventListener('change',()=>uploadFromChat(fileInput.files?.[0]));
+  $('send-message')?.addEventListener('click',send);
+  $('chat-input')?.addEventListener('keydown',e=>{if(e.key==='Enter')send()});
+  document.querySelectorAll('.prompt').forEach(p=>p.addEventListener('click',()=>{
+    $('chat-input').value=p.textContent;
+    send();
+  }));
+}
+
 async function loadBanks(){try{const j=await api('/api/banks');const c=$('bank-list');if(c)c.innerHTML=j.map(b=>`<article class="panel bank-card"><div class="bank-logo">${esc(b.shortName)}</div><div class="bank-info"><strong>${esc(b.name)}</strong><span>Demo connection only</span></div><button class="connect-btn" data-bank="${esc(b.name)}">Use demo</button></article>`).join('')}catch(e){}}
 document.addEventListener('DOMContentLoaded',()=>{setupAuth();setupNav();setupWorkspace();setupChat();loadState();loadBanks();document.querySelectorAll('.prompt').forEach(p=>p.dataset.default='yes')});
 

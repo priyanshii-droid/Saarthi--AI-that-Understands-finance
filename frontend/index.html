@@ -171,8 +171,11 @@
             </div>
             <div class="chat-input-row">
               <input id="chat-input" type="text" placeholder="Ask Saarthi anything about your finances…" autocomplete="off">
+              <input id="chat-file" type="file" accept=".xlsx,.xls,.csv,.json,.txt" hidden>
+              <button id="attach-chat-file" class="attach-btn" type="button" title="Attach Excel, CSV or data file">📎 Attach</button>
               <button id="send-message" class="send-btn">Send ↑</button>
             </div>
+            <div id="chat-upload-status" class="chat-upload-status"></div>
           </article>
         </section>
 
