@@ -198,3 +198,52 @@ async function loadControlRoom(){const out=$('control-room');if(!out)return;if(!
 const _oldShowSection=showSection;
 showSection=function(name){_oldShowSection(name);if(name==='intel'){setText('page-title','Research & Brief');setText('page-subtitle','Current public information plus an evidence-led financial brief.');loadControlRoom();}};
 window.addEventListener('DOMContentLoaded',injectBatch34UI);
+
+/* ===================== SAARTHI FINAL SUBMISSION PACK ===================== */
+(function finalSubmissionPack(){
+  function addUI(){
+    if(document.getElementById('final-pack')) return;
+    const nav=document.querySelector('.nav');
+    if(nav){ const b=document.createElement('button'); b.className='nav-item'; b.dataset.section='lab'; b.innerHTML='<span>◈</span>Voice & Safety Lab'; nav.appendChild(b); }
+    const main=document.querySelector('.content'); if(!main)return;
+    const sec=document.createElement('section'); sec.className='section'; sec.id='lab-section'; sec.innerHTML=`
+      <div class="section-intro"><span class="section-kicker">SAARTHI NEXT GEN</span><h2>Talk. Decide. Stay safe.</h2><p>Voice conversation, decision simulations, scam-signal checks and personal workspace controls.</p></div>
+      <div class="b34-grid">
+        <article class="panel"><div class="panel-head"><div><span class="section-kicker">VOICE BOT</span><h3>Talk to Saarthi</h3></div><span class="mini-badge" id="voice-status">Ready</span></div>
+          <div class="voice-visual"><div class="voice-orb" id="voice-orb">S</div><p id="voice-caption">Press the microphone and speak naturally.</p></div>
+          <div class="b34-search"><input id="voice-text" placeholder="Or type what you want to ask…"><button class="btn btn-dark" id="voice-mic">🎙 Start</button><button class="btn btn-ghost-dark" id="voice-send">Ask →</button></div>
+          <div class="feature-insight"><b>Voice privacy</b><p>Speech recognition uses your browser's available speech service. Saarthi does not need OTPs, PINs, CVVs or passwords.</p></div>
+        </article>
+        <article class="panel"><div class="panel-head"><div><span class="section-kicker">SAFETY CENTER</span><h3>Check a suspicious message</h3></div><span class="mini-badge">Signals ≠ proof</span></div>
+          <textarea id="scam-text" class="problem-input" placeholder="Paste a message or offer you want Saarthi to review…"></textarea><button class="btn btn-dark" id="scam-check">Check signals →</button><div id="scam-result" class="b34-result"><div class="empty-state compact"><strong>No message checked.</strong><p>Saarthi will look for urgency, impersonation, payment pressure, OTP requests and suspicious links.</p></div></div>
+        </article>
+      </div>
+      <div class="b34-grid">
+        <article class="panel"><div class="panel-head"><div><span class="section-kicker">DECISION LAB</span><h3>Digital Twin scenarios</h3></div><span class="mini-badge">No real data changed</span></div>
+          <div class="b34-search"><input id="twin-scenario" placeholder="e.g. salary falls 20% or shopping falls 30%"><button class="btn btn-dark" id="twin-run">Simulate →</button></div><div id="twin-result" class="b34-result"><div class="empty-state compact"><strong>Test a future.</strong><p>Scenarios are temporary calculations and never modify your uploaded transactions.</p></div></div>
+        </article>
+        <article class="panel"><div class="panel-head"><div><span class="section-kicker">MEMORY & PRIVACY</span><h3>Your Saarthi workspace</h3></div><span class="mini-badge">Local demo memory</span></div>
+          <div id="memory-panel" class="feature-insight"></div><div class="workspace-actions"><button class="btn btn-dark" id="remember-language">Remember language</button><button class="btn btn-ghost-dark" id="clear-memory">Clear local preferences</button></div>
+        </article>
+      </div>`; main.appendChild(sec);
+    setupVoice(); setupScam(); setupTwin(); setupMemory();
+  }
+  function setupVoice(){
+    const mic=$('voice-mic'), input=$('voice-text'), status=$('voice-status'), cap=$('voice-caption'), orb=$('voice-orb');
+    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+    if(!SR){mic.disabled=true;status.textContent='Browser voice unavailable';return;}
+    const rec=new SR(); rec.lang=currentLang()==='hi'?'hi-IN':currentLang()==='gu'?'gu-IN':'en-IN'; rec.interimResults=false; rec.maxAlternatives=1;
+    rec.onstart=()=>{status.textContent='Listening…';orb.classList.add('voice-live');cap.textContent='I’m listening…';};
+    rec.onresult=e=>{input.value=e.results[0][0].transcript;cap.textContent='Got it. Press Ask to send it.';};
+    rec.onerror=()=>{status.textContent='Ready';cap.textContent='Voice input could not be started. You can type instead.';orb.classList.remove('voice-live');};
+    rec.onend=()=>{status.textContent='Ready';orb.classList.remove('voice-live');};
+    mic.onclick=()=>rec.start();
+    $('voice-send').onclick=()=>{const q=input.value.trim();if(!q)return; $('chat-input').value=q; showSection('chat'); $('send-message')?.click();};
+    const box=$('chat-messages'); if(box && 'speechSynthesis' in window){new MutationObserver(()=>{const ai=[...box.querySelectorAll('.message.ai')].at(-1); if(ai && ai.textContent && !/thinking|Hi!/.test(ai.textContent)){window.speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(ai.textContent.replace(/\s+/g,' ').trim()); u.lang=currentLang()==='hi'?'hi-IN':currentLang()==='gu'?'gu-IN':'en-IN'; window.speechSynthesis.speak(u);}}).observe(box,{childList:true,subtree:true,characterData:true});}
+  }
+  function setupScam(){ $('scam-check')?.addEventListener('click',()=>{const t=$('scam-text').value.trim();const out=$('scam-result');if(!t){out.innerHTML='<div class="feature-insight"><b>Add a message first.</b><p>Paste the text you want checked.</p></div>';return;} const rules=[['Urgency pressure',/urgent|immediately|act now|within \d+ (minutes?|hours?)/i],['OTP / credential request',/otp|one[- ]time password|pin|cvv|password|verification code/i],['Payment pressure',/pay|transfer|send money|fee|deposit|upi/i],['Impersonation signal',/bank|police|government|income tax|rbi|customer care|support/i],['Suspicious link',/https?:\/\/|bit\.ly|tinyurl|\.tk\b/i]]; const hits=rules.filter(x=>x[1].test(t)).map(x=>x[0]); const level=hits.length>=3?'High':hits.length===2?'Elevated':hits.length===1?'Review':'Low'; out.innerHTML=`<div class="feature-insight"><b>${level} signal level</b><p>${hits.length?hits.map(esc).join(' · '):'No common scam signals were detected by these simple checks.'}</p></div><div class="workspace-panel-note">These are indicators, not proof. Never share OTP, PIN, CVV or passwords.</div>`; }); }
+  function setupTwin(){ $('twin-run')?.addEventListener('click',async()=>{const q=$('twin-scenario').value.trim(),out=$('twin-result');if(!q)return;if(!state.hasData){out.innerHTML='<div class="feature-insight"><b>Load financial data first.</b><p>The Digital Twin needs your supplied numbers.</p></div>';return;} out.innerHTML='<div class="feature-insight"><b>Running scenario…</b><p>Your original transactions remain unchanged.</p></div>';try{const r=await api('/api/chat',{method:'POST',body:JSON.stringify({message:`Decision Lab scenario: ${q}. Calculate the impact using my supplied financial data. Do not modify real data.`})});out.innerHTML=`<div class="feature-insight"><b>Scenario result</b><p>${esc(r.reply||'No result').replace(/\n/g,'<br>')}</p></div>`;}catch(e){out.innerHTML=`<div class="feature-insight"><b>Scenario unavailable</b><p>${esc(e.message)}</p></div>`;}}); }
+  function setupMemory(){const p=$('memory-panel');if(!p)return;const lang=currentLang();p.innerHTML=`<b>Working preference</b><p>Language: ${lang==='hi'?'Hindi':lang==='gu'?'Gujarati':'English'}. Demo preferences are stored locally in this browser.</p>`;$('remember-language')?.addEventListener('click',()=>{localStorage.setItem('saarthi_preferred_language',currentLang());showToast('Language preference saved locally.');});$('clear-memory')?.addEventListener('click',()=>{localStorage.removeItem('saarthi_preferred_language');showToast('Local preference cleared.');setupMemory();});}
+  const oldShow=window.showSection; if(oldShow) window.showSection=function(name){oldShow(name);if(name==='lab'){setText('page-title','Voice & Safety Lab');setText('page-subtitle','Talk to Saarthi, test decisions and check scam signals.');}};
+  window.addEventListener('DOMContentLoaded',addUI);
+})();
