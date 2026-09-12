@@ -1,20 +1,737 @@
-const app=document.getElementById('app');
-const banks=[['SBI','SBI'],['HDFC Bank','H'],['ICICI Bank','IC'],['Axis Bank','A']];
-const data={balance:24500,categories:{Food:2400,Shopping:3200,Transport:1800,Bills:4200,Other:2600},recurring:[['Utilities',1800],['Mobile',599]]};
-function nav(){return `<nav class="nav"><a class="brand" href="#/">SAARTHI<span>.</span></a><span class="small">HACKOUT • DEMO</span></nav>`}
-function shell(content){app.innerHTML=nav()+`<main class="container page">${content}</main>`}
-function home(){shell(`<section class="hero"><div><div class="eyebrow">AI-powered personal finance</div><h1>Your money.<br>Your data.<br><em>Your guide.</em></h1><p>SAARTHI turns your financial data into useful intelligence — helping you understand spending, spot patterns and make smarter financial decisions.</p><div class="actions"><button class="primary" onclick="go('/signin')">Get Started →</button><button class="secondary" onclick="document.getElementById('how').scrollIntoView({behavior:'smooth'})">See How It Works</button></div><div class="footer-note">Synthetic banking data • No real accounts or payments</div></div><div class="visual"><span class="badge">SIMULATED BANKING FLOW</span><div class="flow" style="margin-top:20px"><div>Connect Bank <b>01</b></div><div class="arrow">↓</div><div>Give Consent <b>02</b></div><div class="arrow">↓</div><div>Fetch Data <b>03</b></div><div class="arrow">↓</div><div>Analyze <b>04</b></div><div class="arrow">↓</div><div>Get Advice <b>05</b></div></div></div></section><section id="how" style="padding:80px 0"><div class="eyebrow">How Saarthi works</div><h2>From raw data to useful decisions.</h2></section>`)}
-function signin(){shell(`<div class="card narrow"><div class="eyebrow">Demo authentication</div><h2>Welcome to Saarthi</h2><p class="muted">Sign in to start your simulated financial journey. No real credentials are required.</p><label>Email</label><input id="email" placeholder="you@example.com"><label>Password</label><input type="password" placeholder="••••••••"><button class="primary" onclick="go('/connect-bank')">Sign In →</button><button class="secondary" style="margin-left:10px" onclick="go('/connect-bank')">Continue with Demo Account</button></div>`)}
-function connect(){shell(`<div class="eyebrow">Step 1 of 4</div><h2>Connect your bank</h2><p class="muted">Choose a bank to simulate a secure financial-data connection. No bank credentials are requested.</p><div class="grid">${banks.map(b=>`<div class="bank"><div class="bank-left"><div class="logo">${b[1]}</div><div><b>${b[0]}</b><div class="small">Simulated connection</div></div></div><button class="primary" onclick="selectBank('${b[0]}')">Connect</button></div>`).join('')}</div>`)}
-function selectBank(name){localStorage.setItem('bank',name);go('/consent')}
-function consent(){shell(`<div class="card narrow"><div class="eyebrow">Step 2 of 4 • ${localStorage.getItem('bank')||'Bank'}</div><h2>Give Saarthi permission</h2><p class="muted">Your financial data is shared only with your consent. In this HackOut demo, the connection uses synthetic data only.</p><div class="check">✓ <div><b>Account balance</b><div class="small">View simulated current balance</div></div></div><div class="check">✓ <div><b>Transaction history</b><div class="small">Analyze simulated transactions</div></div></div><div class="check">✓ <div><b>Recurring payments</b><div class="small">Identify recurring expenses</div></div></div><label class="check"><input type="checkbox" id="consent"> <span>I understand that this is a simulated bank connection for the HackOut demo.</span></label><button class="primary" onclick="startFetch()">Give Consent & Continue →</button></div>`)}
-function startFetch(){if(!document.getElementById('consent').checked){alert('Please confirm the demo consent.');return}go('/fetch-data')}
-function fetchPage(){shell(`<div class="card narrow" style="text-align:center"><div class="eyebrow">Step 3 of 4</div><h2 id="fetchTitle">Connecting to your bank...</h2><p class="muted" id="fetchSub">Verifying consent</p><div class="progress"><div class="bar" id="bar"></div></div><div class="steps" id="steps"><div class="step on"><span class="dot"></span>Verifying consent</div><div class="step"><span class="dot"></span>Fetching financial data</div><div class="step"><span class="dot"></span>Securing your information</div><div class="step"><span class="dot"></span>Preparing Saarthi analysis</div></div></div>`);let i=0;const titles=['Connecting to your bank...','Fetching financial data...','Securing your information...','Preparing Saarthi analysis...'];const subs=['Verifying consent','Fetching synthetic transactions','Processing secure demo data','Generating financial insights'];const timer=setInterval(()=>{i++;document.getElementById('bar').style.width=(i*25)+'%';document.getElementById('fetchTitle').textContent=titles[Math.min(i,3)];document.getElementById('fetchSub').textContent=subs[Math.min(i,3)];document.querySelectorAll('.step').forEach((x,j)=>x.classList.toggle('on',j<=i));if(i>=4){clearInterval(timer);go('/analysis')}},900)}
-function analysis(){shell(`<div class="card narrow" style="text-align:center"><div class="eyebrow">Step 4 of 4</div><h2>SAARTHI is analyzing your finances</h2><p class="muted">Categorizing spending, detecting recurring expenses and finding opportunities to save.</p><div class="progress"><div class="bar" style="width:100%"></div></div><button class="primary" onclick="go('/results')">View My Insights →</button></div>`)}
-function results(){let total=Object.values(data.categories).reduce((a,b)=>a+b,0), max=Math.max(...Object.values(data.categories));let high=Object.entries(data.categories).find(x=>x[1]===max);let savings=Math.round(data.categories.Shopping*.2+data.categories.Food*.1);shell(`<div class="eyebrow">Financial intelligence</div><h2>Here’s what Saarthi found.</h2><p class="muted">Based on synthetic transactions from your simulated ${localStorage.getItem('bank')||'bank'} account.</p><div class="stats"><div class="stat"><span class="small">Account balance</span><strong>₹${data.balance.toLocaleString('en-IN')}</strong></div><div class="stat"><span class="small">Monthly spending</span><strong>₹${total.toLocaleString('en-IN')}</strong></div><div class="stat"><span class="small">Potential savings</span><strong>₹${savings.toLocaleString('en-IN')}</strong></div></div><div class="grid"><div class="card"><span class="badge">SPENDING PATTERN</span><h3>Category breakdown</h3><div class="chart">${Object.entries(data.categories).map(([k,v])=>`<div class="row"><span>${k}</span><div class="track"><div class="fill" style="width:${v/max*100}%"></div></div><b>₹${v.toLocaleString('en-IN')}</b></div>`).join('')}</div></div><div class="card"><span class="badge">SAARTHI RECOMMENDS</span><h3 class="recommend">You could save about ₹${savings.toLocaleString('en-IN')} every month.</h3><p class="muted">Your highest category is <b>${high[0]}</b> at ₹${high[1].toLocaleString('en-IN')}. Reducing discretionary spending here could create meaningful monthly savings.</p><p class="muted"><b>Recurring:</b> Utilities ₹1,800 + Mobile ₹599 = ₹2,399/month.</p><button class="primary" onclick="go('/payment')">Try Payment Simulation →</button></div></div><div class="card" style="margin-top:18px"><span class="badge">RECENT DEMO TRANSACTIONS</span><div class="grid"><div class="bank"><span>Swiggy</span><b>− ₹640</b></div><div class="bank"><span>Amazon</span><b>− ₹1,299</b></div><div class="bank"><span>Uber</span><b>− ₹320</b></div><div class="bank"><span>Electricity Bill</span><b>− ₹1,800</b></div></div></div>`)}
-function payment(){shell(`<div class="card narrow"><span class="badge">PAYMENT SIMULATION</span><h2>Turn advice into action.</h2><p class="muted">This is a simulated payment. No money will move and no real payment credentials are collected.</p><div class="bank"><span>Suggested savings transfer</span><strong>₹2,100</strong></div><br><button class="primary" onclick="simulate()">Simulate Payment</button><button class="secondary" style="margin-left:10px" onclick="go('/dashboard')">Skip</button></div>`)}
-function simulate(){alert('Payment simulation successful — no real transaction was made.');go('/dashboard')}
-function dashboard(){shell(`<div class="eyebrow">Demo dashboard</div><h2>Your financial cockpit.</h2><p class="muted">A single view of your simulated financial health.</p><div class="stats"><div class="stat"><span class="small">Balance</span><strong>₹24,500</strong></div><div class="stat"><span class="small">Spent this month</span><strong>₹14,200</strong></div><div class="stat"><span class="small">Potential savings</span><strong>₹2,100</strong></div></div><div class="card"><span class="badge">NEXT BEST ACTION</span><h3 class="recommend">Set aside ₹2,100 this month and review shopping spend.</h3><p class="muted">Your Saarthi journey is complete. Restart the demo anytime to show the full consent → data → intelligence flow.</p><button class="primary" onclick="go('/connect-bank')">Restart Demo</button></div>`)}
-function go(path){location.hash=path}
-function router(){let p=location.hash.slice(1)||'/';({ '/':home,'/signin':signin,'/connect-bank':connect,'/consent':consent,'/fetch-data':fetchPage,'/analysis':analysis,'/results':results,'/payment':payment,'/dashboard':dashboard}[p]||home)()}
-window.addEventListener('hashchange',router);router();
+const API_BASE =
+  "https://saarthi-ai-that-understands-finance.onrender.com";
+
+let dashboardData = null;
+let analyticsData = null;
+let transactionsData = [];
+
+const $ = (id) => document.getElementById(id);
+
+async function api(path, options = {}) {
+  const response = await fetch(`${API_BASE}${path}`, {
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers || {})
+    },
+    ...options
+  });
+
+  if (!response.ok) {
+    throw new Error(`API error: ${response.status}`);
+  }
+
+  return response.json();
+}
+
+/* =========================
+   INITIAL LOAD
+========================= */
+
+document.addEventListener("DOMContentLoaded", () => {
+  setupNavigation();
+  setupChat();
+  setupMobileMenu();
+  loadDashboard();
+});
+
+/* =========================
+   NAVIGATION
+========================= */
+
+function setupNavigation() {
+  document.querySelectorAll(".nav-item").forEach((item) => {
+    item.addEventListener("click", () => {
+      const target = item.dataset.section;
+
+      if (!target) return;
+
+      document.querySelectorAll(".nav-item").forEach((nav) => {
+        nav.classList.remove("active");
+      });
+
+      item.classList.add("active");
+
+      document.querySelectorAll(".section").forEach((section) => {
+        section.classList.remove("active");
+      });
+
+      const section = $(`${target}-section`);
+
+      if (section) {
+        section.classList.add("active");
+      }
+
+      updatePageTitle(target);
+
+      if (target === "transactions") {
+        loadTransactions();
+      }
+
+      if (target === "analytics") {
+        loadAnalytics();
+      }
+
+      closeMobileMenu();
+    });
+  });
+}
+
+function updatePageTitle(section) {
+  const titles = {
+    dashboard: [
+      "Financial overview",
+      "Your money, understood simply."
+    ],
+    analytics: [
+      "Financial intelligence",
+      "See where your money is going."
+    ],
+    transactions: [
+      "Transactions",
+      "Your simulated financial activity."
+    ],
+    chat: [
+      "Ask Saarthi",
+      "Your AI financial companion."
+    ],
+    banks: [
+      "Connect bank",
+      "Demo bank connections only."
+    ]
+  };
+
+  const data = titles[section] || titles.dashboard;
+
+  const title = $("page-title");
+  const subtitle = $("page-subtitle");
+
+  if (title) title.textContent = data[0];
+  if (subtitle) subtitle.textContent = data[1];
+}
+
+/* =========================
+   MOBILE MENU
+========================= */
+
+function setupMobileMenu() {
+  const button = $("mobile-menu");
+
+  if (!button) return;
+
+  button.addEventListener("click", () => {
+    $("sidebar")?.classList.toggle("open");
+  });
+}
+
+function closeMobileMenu() {
+  $("sidebar")?.classList.remove("open");
+}
+
+/* =========================
+   DASHBOARD
+========================= */
+
+async function loadDashboard() {
+  try {
+    const data = await api("/api/dashboard");
+
+    dashboardData = data;
+    analyticsData = data;
+
+    renderDashboard(data);
+  } catch (error) {
+    console.error(error);
+    showError("dashboard", "Unable to load demo financial data.");
+  }
+}
+
+function renderDashboard(data) {
+  setText("balance", formatCurrency(data.balance));
+  setText("income", formatCurrency(data.totalIncome));
+  setText("expenses", formatCurrency(data.totalExpenses));
+  setText("savings", formatCurrency(data.netSavings));
+
+  setText(
+    "savings-rate",
+    `${data.savingsRate}% savings rate`
+  );
+
+  setText(
+    "health-score",
+    `${data.healthScore}`
+  );
+
+  setText(
+    "potential-savings",
+    formatCurrency(data.potentialSavings)
+  );
+
+  if (data.highestCategory) {
+    setText(
+      "highest-category",
+      data.highestCategory.category
+    );
+
+    setText(
+      "highest-category-amount",
+      formatCurrency(data.highestCategory.amount)
+    );
+  }
+
+  renderCategories(
+    data.categories,
+    $("dashboard-categories")
+  );
+
+  renderMonthlyChart(
+    data.monthly,
+    $("monthly-chart")
+  );
+
+  renderTransactions(
+    data.recentTransactions || [],
+    $("recent-transactions")
+  );
+
+  renderInsight(data);
+  renderHealth(data.healthScore);
+}
+
+/* =========================
+   ANALYTICS
+========================= */
+
+async function loadAnalytics() {
+  try {
+    const data = await api("/api/analytics");
+
+    analyticsData = data.analytics;
+
+    renderAnalytics(analyticsData);
+  } catch (error) {
+    console.error(error);
+    showError("analytics", "Analytics could not be loaded.");
+  }
+}
+
+function renderAnalytics(data) {
+  setText(
+    "analytics-income",
+    formatCurrency(data.totalIncome)
+  );
+
+  setText(
+    "analytics-expenses",
+    formatCurrency(data.totalExpenses)
+  );
+
+  setText(
+    "analytics-savings",
+    formatCurrency(data.netSavings)
+  );
+
+  setText(
+    "analytics-rate",
+    `${data.savingsRate}%`
+  );
+
+  renderCategories(
+    data.categories,
+    $("analytics-categories")
+  );
+
+  renderMonthlyChart(
+    data.monthly,
+    $("analytics-chart")
+  );
+
+  renderMerchants(
+    data.topMerchants,
+    $("top-merchants")
+  );
+
+  renderRecurring(
+    data.recurring,
+    $("recurring-list")
+  );
+}
+
+/* =========================
+   TRANSACTIONS
+========================= */
+
+async function loadTransactions() {
+  try {
+    const data = await api("/api/transactions");
+
+    transactionsData = data.transactions;
+
+    renderTransactionTable(transactionsData);
+  } catch (error) {
+    console.error(error);
+    showError(
+      "transactions",
+      "Transactions could not be loaded."
+    );
+  }
+}
+
+function renderTransactionTable(transactions) {
+  const body = $("transaction-table-body");
+
+  if (!body) return;
+
+  body.innerHTML = "";
+
+  transactions.forEach((transaction) => {
+    const row = document.createElement("tr");
+
+    const amountClass =
+      transaction.amount < 0
+        ? "negative"
+        : "positive";
+
+    const amount =
+      transaction.amount < 0
+        ? `−${formatCurrency(Math.abs(transaction.amount))}`
+        : `+${formatCurrency(transaction.amount)}`;
+
+    row.innerHTML = `
+      <td>${formatDate(transaction.date)}</td>
+      <td>${escapeHTML(transaction.merchant)}</td>
+      <td>
+        <span class="badge">
+          ${escapeHTML(transaction.category)}
+        </span>
+      </td>
+      <td class="${amountClass}">
+        ${amount}
+      </td>
+      <td>
+        <span class="badge">Simulated</span>
+      </td>
+    `;
+
+    body.appendChild(row);
+  });
+}
+
+/* =========================
+   CATEGORIES
+========================= */
+
+function renderCategories(categories, container) {
+  if (!container) return;
+
+  if (!categories || !categories.length) {
+    container.innerHTML =
+      `<div class="loading">No category data available.</div>`;
+    return;
+  }
+
+  const max =
+    Math.max(...categories.map((item) => item.amount));
+
+  container.innerHTML = categories
+    .map((item) => {
+      const percentage =
+        max > 0
+          ? Math.round((item.amount / max) * 100)
+          : 0;
+
+      return `
+        <div class="category-row">
+          <div class="category-name">
+            ${escapeHTML(item.category)}
+          </div>
+
+          <div class="progress">
+            <div
+              class="progress-fill"
+              style="width:${percentage}%"
+            ></div>
+          </div>
+
+          <div class="category-amount">
+            ${formatCurrency(item.amount)}
+          </div>
+        </div>
+      `;
+    })
+    .join("");
+}
+
+/* =========================
+   MONTHLY CHART
+========================= */
+
+function renderMonthlyChart(months, container) {
+  if (!container) return;
+
+  if (!months || !months.length) {
+    container.innerHTML =
+      `<div class="loading">No monthly data available.</div>`;
+    return;
+  }
+
+  const max =
+    Math.max(...months.map((m) => m.expenses));
+
+  container.innerHTML = months
+    .map((month) => {
+      const height =
+        max > 0
+          ? Math.max(
+              10,
+              Math.round(
+                (month.expenses / max) * 82
+              )
+            )
+          : 10;
+
+      const label = formatMonth(month.month);
+
+      return `
+        <div class="chart-column">
+          <div
+            class="chart-bar"
+            style="height:${height}%"
+            title="${formatCurrency(month.expenses)} spent"
+          ></div>
+
+          <div class="chart-value">
+            ${formatCurrencyShort(month.expenses)}
+          </div>
+
+          <div class="chart-label">
+            ${label}
+          </div>
+        </div>
+      `;
+    })
+    .join("");
+}
+
+/* =========================
+   MERCHANTS
+========================= */
+
+function renderMerchants(merchants, container) {
+  if (!container) return;
+
+  if (!merchants || !merchants.length) {
+    container.innerHTML =
+      `<div class="loading">No merchant data available.</div>`;
+    return;
+  }
+
+  container.innerHTML = merchants
+    .map(
+      (merchant, index) => `
+        <div class="transaction">
+          <div class="transaction-icon">
+            ${index + 1}
+          </div>
+
+          <div class="transaction-info">
+            <div class="transaction-name">
+              ${escapeHTML(merchant.merchant)}
+            </div>
+
+            <div class="transaction-date">
+              Total spending
+            </div>
+          </div>
+
+          <div class="transaction-amount negative">
+            −${formatCurrency(merchant.amount)}
+          </div>
+        </div>
+      `
+    )
+    .join("");
+}
+
+/* =========================
+   RECURRING
+========================= */
+
+function renderRecurring(items, container) {
+  if (!container) return;
+
+  if (!items || !items.length) {
+    container.innerHTML =
+      `<div class="loading">No recurring payments.</div>`;
+    return;
+  }
+
+  container.innerHTML = items
+    .map(
+      (item) => `
+        <div class="transaction">
+          <div class="transaction-icon">
+            ↻
+          </div>
+
+          <div class="transaction-info">
+            <div class="transaction-name">
+              ${escapeHTML(item.name)}
+            </div>
+
+            <div class="transaction-date">
+              ${escapeHTML(item.frequency)}
+            </div>
+          </div>
+
+          <div class="transaction-amount">
+            ${formatCurrency(item.amount)}
+          </div>
+        </div>
+      `
+    )
+    .join("");
+}
+
+/* =========================
+   RECENT TRANSACTIONS
+========================= */
+
+function renderTransactions(transactions, container) {
+  if (!container) return;
+
+  if (!transactions.length) {
+    container.innerHTML =
+      `<div class="loading">No transactions available.</div>`;
+    return;
+  }
+
+  container.innerHTML = transactions
+    .map((transaction) => {
+      const icon = getCategoryIcon(
+        transaction.category
+      );
+
+      const amount =
+        transaction.amount < 0
+          ? `−${formatCurrency(Math.abs(transaction.amount))}`
+          : `+${formatCurrency(transaction.amount)}`;
+
+      const amountClass =
+        transaction.amount < 0
+          ? "negative"
+          : "positive";
+
+      return `
+        <div class="transaction">
+          <div class="transaction-icon">
+            ${icon}
+          </div>
+
+          <div class="transaction-info">
+            <div class="transaction-name">
+              ${escapeHTML(transaction.merchant)}
+            </div>
+
+            <div class="transaction-date">
+              ${formatDate(transaction.date)}
+              ·
+              ${escapeHTML(transaction.category)}
+            </div>
+          </div>
+
+          <div class="transaction-amount ${amountClass}">
+            ${amount}
+          </div>
+        </div>
+      `;
+    })
+    .join("");
+}
+
+/* =========================
+   INSIGHTS
+========================= */
+
+function renderInsight(data) {
+  const insight = $("main-insight");
+
+  if (!insight) return;
+
+  const category = data.highestCategory?.category || "spending";
+
+  insight.innerHTML = `
+    <div class="insight-label">
+      Saarthi insight
+    </div>
+
+    <h3>
+      Your biggest opportunity is ${escapeHTML(category.toLowerCase())}.
+    </h3>
+
+    <p>
+      Saarthi estimates that you could potentially save
+      ${formatCurrency(data.potentialSavings)}
+      by reducing discretionary food and shopping expenses.
+    </p>
+  `;
+}
+
+/* =========================
+   HEALTH
+========================= */
+
+function renderHealth(score) {
+  const ring = $("health-ring");
+
+  if (ring) {
+    ring.style.setProperty(
+      "--score",
+      `${score}%`
+    );
+  }
+
+  const label = $("health-label");
+
+  if (!label) return;
+
+  if (score >= 80) {
+    label.textContent = "Strong financial health";
+  } else if (score >= 60) {
+    label.textContent = "Healthy with room to improve";
+  } else {
+    label.textContent = "Needs attention";
+  }
+}
+
+/* =========================
+   CHAT
+========================= */
+
+function setupChat() {
+  const input = $("chat-input");
+  const button = $("send-message");
+
+  if (!input || !button) return;
+
+  button.addEventListener("click", sendChatMessage);
+
+  input.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      sendChatMessage();
+    }
+  });
+
+  document.querySelectorAll(".prompt").forEach((prompt) => {
+    prompt.addEventListener("click", () => {
+      input.value = prompt.textContent.trim();
+      sendChatMessage();
+    });
+  });
+}
+
+async function sendChatMessage() {
+  const input = $("chat-input");
+
+  if (!input) return;
+
+  const message = input.value.trim();
+
+  if (!message) return;
+
+  addChatMessage(message, "user");
+
+  input.value = "";
+
+  const thinking = addChatMessage(
+    "Thinking…",
+    "ai"
+  );
+
+  try {
+    const data = await api("/api/chat", {
+      method: "POST",
+      body: JSON.stringify({
+        message
+      })
+    });
+
+    thinking.textContent =
+      data.reply || "I couldn't generate an answer.";
+  } catch (error) {
+    console.error(error);
+
+    thinking.textContent =
+      "I'm having trouble reaching the Saarthi demo service. Please try again.";
+  }
+}
+
+function addChatMessage(text, type) {
+  const messages = $("chat-messages");
+
+  if (!messages) return null;
+
+  const message = document.createElement("div");
+
+  message.className =
+    `message ${type}`;
+
+  message.textContent = text;
+
+  messages.appendChild(message);
+
+  messages.scrollTop =
+    messages.scrollHeight;
+
+  return message;
+}
+
+/* =========================
+   BANKS
+========================= */
+
+async function loadBanks() {
+  const container = $("bank-list");
+
+  if (!container) return;
+
+  container.innerHTML =
+    `<div class="loading">Loading demo banks…</div>`;
+
+  try {
+    const banks = await api("/api/banks");
+
+    container.innerHTML = banks
+      .map(
+        (bank) => `
+          <div class="card bank-card">
+            <div class="bank-logo">
+              ${escapeHTML(
+                bank.shortName ||
+                bank.name.substring(0, 3)
+              )}
+            </div>
+
+            <div class="bank-info">
+              <strong>
+                ${escapeHTML(bank.name)}
+              </strong>
+
+              <span>
+                Synthetic demo connection
+              </span>
+            </div>
+
+            <button
+              class="connect-btn"
+              onclick="simulateBankConnection('${escapeHTML(bank.name)}')"
+            >
+              Connect
+            </button>
+          </div>
+        `
+      )
+      .join("");
+  } catch (error) {
+    container.innerHTML =
+     
