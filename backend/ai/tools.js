@@ -1,5 +1,6 @@
 function toolDefinitions() {
   return [
+    { type:'function', name:'investigate_finances', description:'Act as Saarthi financial investigator. Rank evidence-supported findings across cash flow, month changes, category spikes, duplicates, anomalies, recurring payments, concentration and data quality. Never invent missing transactions.', strict:true, parameters:{type:'object',properties:{},additionalProperties:false} },
     { type:'function', name:'get_financial_summary', description:'Get the current financial summary: income, expenses, surplus, savings rate, periods, largest categories, top merchants, goals and data coverage.', strict:true, parameters:{type:'object',properties:{},additionalProperties:false} },
     { type:'function', name:'audit_transactions', description:'Audit supplied transactions for possible duplicates, unusual expenses, recurring payment patterns, uncategorized rows and data coverage. Treat findings as review signals, not proof of fraud.', strict:true, parameters:{type:'object',properties:{},additionalProperties:false} },
     { type:'function', name:'find_category_spending', description:'Investigate spending in one category, including total, share of expenses, merchants and representative transactions.', strict:true, parameters:{type:'object',properties:{category:{type:'string',description:'Category to investigate, e.g. Food or Shopping'}},required:['category'],additionalProperties:false} },
@@ -11,10 +12,11 @@ function toolDefinitions() {
 }
 
 function buildExecutors(toolkit) {
-  const { state, analyze, auditTransactions, money } = toolkit;
+  const { state, analyze, auditTransactions, money, investigateFinances } = toolkit;
   const current = () => analyze(state.transactions, state.problem);
 
   return {
+    investigate_finances: () => investigateFinances(state.transactions,state.problem),
     get_financial_summary: () => {
       const a=current();
       return {transactionCount:a.transactionCount, periods:a.periods, income:a.totalIncome, expenses:a.totalExpenses, surplus:a.netSavings, savingsRate:a.savingsRate, fixedExpenses:a.fixedExpenses, largestCategory:a.highestCategory, topMerchants:a.topMerchants, discretionary:a.discretionary, goal:a.goal, requiredMonthly:a.requiredMonthly, targetGap:a.targetGap, potentialSavings:a.potentialSavings, healthScore:a.healthScore, coverage:a.audit.coverage};
