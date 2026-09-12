@@ -1,1012 +1,270 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  />
-
-  <title>SAARTHI — AI Finance Intelligence</title>
-
-  <meta
-    name="description"
-    content="SAARTHI is an AI-powered personal finance intelligence platform."
-  />
-
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="SAARTHI — AI-powered financial intelligence demo">
+  <title>SAARTHI — Financial Intelligence</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-
-<div class="app">
-
-  <!-- =========================
-       SIDEBAR
-  ========================== -->
-
-  <aside class="sidebar" id="sidebar">
-
-    <div class="logo">
-      <div class="logo-mark">S</div>
-
-      <div>
-        <div class="logo-text">SAARTHI</div>
-        <span class="logo-subtitle">
-          AI Finance Intelligence
-        </span>
-      </div>
-    </div>
-
-    <nav class="nav">
-
-      <button
-        class="nav-item active"
-        data-section="dashboard"
-      >
-        <span class="nav-icon">⌂</span>
-        Dashboard
-      </button>
-
-      <button
-        class="nav-item"
-        data-section="analytics"
-      >
-        <span class="nav-icon">◒</span>
-        Analytics
-      </button>
-
-      <button
-        class="nav-item"
-        data-section="transactions"
-      >
-        <span class="nav-icon">↕</span>
-        Transactions
-      </button>
-
-      <button
-        class="nav-item"
-        data-section="chat"
-      >
-        <span class="nav-icon">✦</span>
-        Ask Saarthi
-      </button>
-
-      <button
-        class="nav-item"
-        data-section="banks"
-      >
-        <span class="nav-icon">▣</span>
-        Connect Bank
-      </button>
-
-    </nav>
-
-    <div class="sidebar-bottom">
-
-      <div class="demo-badge">
-        <strong>● DEMO MODE</strong>
-        <span>
-          Synthetic financial data only.
-          No real banking access.
-        </span>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="brand-mark">S</div>
+        <div>
+          <div class="brand-name">SAARTHI</div>
+          <div class="brand-sub">AI Finance Intelligence</div>
+        </div>
       </div>
 
-    </div>
+      <nav class="nav">
+        <button class="nav-item active" data-section="dashboard"><span>⌂</span>Dashboard</button>
+        <button class="nav-item" data-section="analytics"><span>◒</span>Analytics</button>
+        <button class="nav-item" data-section="transactions"><span>↕</span>Transactions</button>
+        <button class="nav-item" data-section="chat"><span>✦</span>Ask Saarthi</button>
+        <button class="nav-item" data-section="banks"><span>▣</span>Connect Bank</button>
+      </nav>
 
-  </aside>
-
-
-  <!-- =========================
-       MAIN
-  ========================== -->
-
-  <main class="main">
-
-    <!-- TOPBAR -->
-
-    <header class="topbar">
-
-      <div style="display:flex;align-items:center;gap:12px;">
-
-        <button
-          class="mobile-menu"
-          id="mobile-menu"
-          aria-label="Open menu"
-        >
-          ☰
-        </button>
-
-        <div class="page-title">
-          <h1 id="page-title">
-            Financial overview
-          </h1>
-
-          <p id="page-subtitle">
-            Your money, understood simply.
-          </p>
-        </div>
-
+      <div class="demo-card">
+        <div class="demo-dot"></div>
+        <strong>DEMO MODE</strong>
+        <p>Synthetic financial data only. No real banking access.</p>
       </div>
+    </aside>
 
-
-      <div class="top-actions">
-
-        <div class="demo-pill">
-          DEMO · SIMULATION
+    <main class="main">
+      <header class="topbar">
+        <button class="menu-btn" id="mobile-menu" aria-label="Open menu">☰</button>
+        <div>
+          <h1 id="page-title">Financial overview</h1>
+          <p id="page-subtitle">Your money, understood simply.</p>
         </div>
-
-        <div class="avatar">
-          P
+        <div class="topbar-right">
+          <span class="simulation-pill">● DEMO · SIMULATION</span>
+          <div class="avatar">P</div>
         </div>
+      </header>
 
-      </div>
-
-    </header>
-
-
-    <div class="content">
-
-
-      <!-- =========================
-           DASHBOARD
-      ========================== -->
-
-      <section
-        class="section active"
-        id="dashboard-section"
-      >
-
-        <div class="hero">
-
-          <div class="hero-content">
-
-            <h2>
-              Your money has a story.
-              Saarthi helps you understand it.
-            </h2>
-
-            <p>
-              An intelligent financial companion that turns
-              transactions into clear insights, savings
-              opportunities and actionable decisions.
-            </p>
-
-            <div class="hero-actions">
-
-              <button
-                class="btn btn-primary"
-                onclick="document.querySelector('[data-section=chat]').click()"
-              >
-                Ask Saarthi
-              </button>
-
-              <button
-                class="btn btn-secondary"
-                onclick="document.querySelector('[data-section=analytics]').click()"
-              >
-                View insights
-              </button>
-
+      <div class="content">
+        <section class="section active" id="dashboard-section">
+          <div class="hero">
+            <div class="hero-copy">
+              <span class="eyebrow">YOUR FINANCIAL COMPANION</span>
+              <h2>Your money has a story.<br>Saarthi helps you understand it.</h2>
+              <p>An intelligent financial companion that turns transactions into clear insights, savings opportunities and actionable decisions.</p>
+              <div class="hero-actions">
+                <button class="btn btn-light" data-go="chat">Ask Saarthi <span>→</span></button>
+                <button class="btn btn-ghost" data-go="analytics">View insights</button>
+              </div>
             </div>
-
+            <div class="hero-orbit">
+              <div class="orbit-ring ring-one"></div>
+              <div class="orbit-ring ring-two"></div>
+              <div class="orbit-core">S</div>
+            </div>
           </div>
 
-        </div>
-
-
-        <!-- STAT CARDS -->
-
-        <div class="stats-grid">
-
-          <div class="card stat-card">
-
-            <div class="stat-top">
-              <span class="stat-label">
-                Current balance
-              </span>
-
-              <div class="stat-icon">
-                ₹
-              </div>
-            </div>
-
-            <div
-              class="stat-value"
-              id="balance"
-            >
-              —
-            </div>
-
-            <div class="stat-change">
-              Simulated account balance
-            </div>
-
+          <div class="stats-grid">
+            <article class="stat-card">
+              <div class="stat-icon">₹</div>
+              <div class="stat-label">Current balance</div>
+              <div class="stat-value" id="balance">—</div>
+              <div class="stat-note">Simulated account balance</div>
+            </article>
+            <article class="stat-card">
+              <div class="stat-icon up">↗</div>
+              <div class="stat-label">Income</div>
+              <div class="stat-value" id="income">—</div>
+              <div class="stat-note">Total detected income</div>
+            </article>
+            <article class="stat-card">
+              <div class="stat-icon down">↘</div>
+              <div class="stat-label">Expenses</div>
+              <div class="stat-value" id="expenses">—</div>
+              <div class="stat-note">Across demo transactions</div>
+            </article>
+            <article class="stat-card">
+              <div class="stat-icon">✦</div>
+              <div class="stat-label">Net savings</div>
+              <div class="stat-value" id="savings">—</div>
+              <div class="stat-note" id="savings-rate">Calculating…</div>
+            </article>
           </div>
 
-
-          <div class="card stat-card">
-
-            <div class="stat-top">
-              <span class="stat-label">
-                Income
-              </span>
-
-              <div class="stat-icon">
-                ↗
+          <div class="dashboard-grid">
+            <article class="panel trend-panel">
+              <div class="panel-head">
+                <div>
+                  <span class="section-kicker">SPENDING TREND</span>
+                  <h3>Monthly expenses</h3>
+                </div>
+                <span class="mini-badge">3 months</span>
               </div>
-            </div>
+              <div class="chart" id="monthly-chart">
+                <div class="loading">Loading financial data…</div>
+              </div>
+            </article>
 
-            <div
-              class="stat-value"
-              id="income"
-            >
-              —
-            </div>
-
-            <div class="stat-change good">
-              Total detected income
-            </div>
-
+            <article class="panel health-panel">
+              <div class="panel-head">
+                <div>
+                  <span class="section-kicker">FINANCIAL HEALTH</span>
+                  <h3>Your score</h3>
+                </div>
+              </div>
+              <div class="health-wrap">
+                <div class="health-ring" id="health-ring" style="--score:0%">
+                  <div class="health-inner">
+                    <strong id="health-score">—</strong>
+                    <span>/ 100</span>
+                  </div>
+                </div>
+                <div>
+                  <h4 id="health-label">Calculating…</h4>
+                  <p>Based on savings behavior and spending patterns.</p>
+                </div>
+              </div>
+            </article>
           </div>
 
-
-          <div class="card stat-card">
-
-            <div class="stat-top">
-              <span class="stat-label">
-                Expenses
-              </span>
-
-              <div class="stat-icon">
-                ↘
+          <div class="dashboard-grid lower">
+            <article class="panel">
+              <div class="panel-head">
+                <div>
+                  <span class="section-kicker">SPENDING BREAKDOWN</span>
+                  <h3>Where your money goes</h3>
+                </div>
+                <button class="text-btn" data-go="analytics">Full analytics →</button>
               </div>
-            </div>
+              <div id="dashboard-categories" class="categories">
+                <div class="loading">Loading categories…</div>
+              </div>
+            </article>
 
-            <div
-              class="stat-value"
-              id="expenses"
-            >
-              —
-            </div>
-
-            <div class="stat-change">
-              Across demo transactions
-            </div>
-
+            <article class="panel">
+              <div class="panel-head">
+                <div>
+                  <span class="section-kicker">RECENT ACTIVITY</span>
+                  <h3>Latest transactions</h3>
+                </div>
+                <button class="text-btn" data-go="transactions">View all →</button>
+              </div>
+              <div id="recent-transactions" class="transactions">
+                <div class="loading">Loading transactions…</div>
+              </div>
+            </article>
           </div>
 
-
-          <div class="card stat-card">
-
-            <div class="stat-top">
-              <span class="stat-label">
-                Net savings
-              </span>
-
-              <div class="stat-icon">
-                ✦
-              </div>
-            </div>
-
-            <div
-              class="stat-value"
-              id="savings"
-            >
-              —
-            </div>
-
-            <div
-              class="stat-change good"
-              id="savings-rate"
-            >
-              —
-            </div>
-
-          </div>
-
-        </div>
-
-
-        <!-- CHART + HEALTH -->
-
-        <div class="dashboard-grid">
-
-          <div class="card">
-
-            <div class="card-header">
-
-              <div>
-                <div class="card-title">
-                  Spending trend
-                </div>
-
-                <div class="card-subtitle">
-                  Monthly expenses
-                </div>
-              </div>
-
-            </div>
-
-            <div class="card-body">
-
-              <div
-                class="chart"
-                id="monthly-chart"
-              >
-                <div class="loading">
-                  Loading financial data…
-                </div>
-              </div>
-
-            </div>
-
-          </div>
-
-
-          <div class="card health">
-
-            <div class="card-header">
-              <div class="card-title">
-                Financial health
-              </div>
-            </div>
-
-            <div
-              class="score-ring"
-              id="health-ring"
-              style="--score:0%"
-            >
-
-              <div class="score-number">
-
-                <strong id="health-score">
-                  —
-                </strong>
-
-                <span>
-                  / 100
-                </span>
-
-              </div>
-
-            </div>
-
-            <h3 id="health-label">
-              Calculating…
-            </h3>
-
-            <p>
-              Based on savings behavior
-              and spending patterns.
-            </p>
-
-          </div>
-
-        </div>
-
-
-        <!-- CATEGORY + TRANSACTIONS -->
-
-        <div class="two-column">
-
-          <div class="card">
-
-            <div class="card-header">
-
-              <div>
-                <div class="card-title">
-                  Where your money goes
-                </div>
-
-                <div class="card-subtitle">
-                  Spending by category
-                </div>
-              </div>
-
-            </div>
-
-            <div class="card-body">
-
-              <div
-                class="category-list"
-                id="dashboard-categories"
-              >
-                <div class="loading">
-                  Loading…
-                </div>
-              </div>
-
-            </div>
-
-          </div>
-
-
-          <div class="card">
-
-            <div class="card-header">
-
-              <div>
-                <div class="card-title">
-                  Recent transactions
-                </div>
-
-                <div class="card-subtitle">
-                  Latest simulated activity
-                </div>
-              </div>
-
-            </div>
-
-            <div class="card-body">
-
-              <div
-                class="transaction-list"
-                id="recent-transactions"
-              >
-                <div class="loading">
-                  Loading…
-                </div>
-              </div>
-
-            </div>
-
-          </div>
-
-        </div>
-
-
-        <!-- INSIGHT -->
-
-        <div
-          class="card"
-          style="margin-top:18px;"
-        >
-
-          <div class="card-body">
-
-            <div
-              class="insight"
-              id="main-insight"
-            >
-
-              <div class="insight-label">
-                Saarthi insight
-              </div>
-
-              <h3>
-                Analyzing your financial behavior…
-              </h3>
-
-              <p>
-                Saarthi is looking for patterns
-                in your simulated transactions.
-              </p>
-
-            </div>
-
-          </div>
-
-        </div>
-
-      </section>
-
-
-      <!-- =========================
-           ANALYTICS
-      ========================== -->
-
-      <section
-        class="section"
-        id="analytics-section"
-      >
-
-        <div class="hero">
-
-          <div class="hero-content">
-
-            <h2>
-              Financial intelligence,
-              without the spreadsheets.
-            </h2>
-
-            <p>
-              Saarthi analyzes your transaction history
-              and turns raw activity into understandable
-              financial signals.
-            </p>
-
-          </div>
-
-        </div>
-
-
-        <div class="stats-grid">
-
-          <div class="card stat-card">
-
-            <div class="stat-label">
-              Total income
-            </div>
-
-            <div
-              class="stat-value"
-              id="analytics-income"
-            >
-              —
-            </div>
-
-          </div>
-
-
-          <div class="card stat-card">
-
-            <div class="stat-label">
-              Total expenses
-            </div>
-
-            <div
-              class="stat-value"
-              id="analytics-expenses"
-            >
-              —
-            </div>
-
-          </div>
-
-
-          <div class="card stat-card">
-
-            <div class="stat-label">
-              Net savings
-            </div>
-
-            <div
-              class="stat-value"
-              id="analytics-savings"
-            >
-              —
-            </div>
-
-          </div>
-
-
-          <div class="card stat-card">
-
-            <div class="stat-label">
-              Savings rate
-            </div>
-
-            <div
-              class="stat-value"
-              id="analytics-rate"
-            >
-              —
-            </div>
-
-          </div>
-
-        </div>
-
-
-        <div class="dashboard-grid">
-
-          <div class="card">
-
-            <div class="card-header">
-
-              <div>
-                <div class="card-title">
-                  Monthly spending
-                </div>
-
-                <div class="card-subtitle">
-                  Expense trend
-                </div>
-              </div>
-
-            </div>
-
-            <div class="card-body">
-
-              <div
-                class="chart"
-                id="analytics-chart"
-              >
-                <div class="loading">
-                  Loading…
-                </div>
-              </div>
-
-            </div>
-
-          </div>
-
-
-          <div class="card">
-
-            <div class="card-header">
-
-              <div>
-                <div class="card-title">
-                  Spending categories
-                </div>
-
-                <div class="card-subtitle">
-                  Where expenses are concentrated
-                </div>
-              </div>
-
-            </div>
-
-            <div class="card-body">
-
-              <div
-                class="category-list"
-                id="analytics-categories"
-              >
-                <div class="loading">
-                  Loading…
-                </div>
-              </div>
-
-            </div>
-
-          </div>
-
-        </div>
-
-
-        <div class="two-column">
-
-          <div class="card">
-
-            <div class="card-header">
-
-              <div>
-                <div class="card-title">
-                  Top merchants
-                </div>
-
-                <div class="card-subtitle">
-                  Highest cumulative spending
-                </div>
-              </div>
-
-            </div>
-
-            <div
-              class="card-body"
-              id="top-merchants"
-            >
-              <div class="loading">
-                Loading…
-              </div>
-            </div>
-
-          </div>
-
-
-          <div class="card">
-
-            <div class="card-header">
-
-              <div>
-                <div class="card-title">
-                  Recurring payments
-                </div>
-
-                <div class="card-subtitle">
-                  Bills Saarthi detected
-                </div>
-              </div>
-
-            </div>
-
-            <div
-              class="card-body"
-              id="recurring-list"
-            >
-              <div class="loading">
-                Loading…
-              </div>
-            </div>
-
-          </div>
-
-        </div>
-
-      </section>
-
-
-      <!-- =========================
-           TRANSACTIONS
-      ========================== -->
-
-      <section
-        class="section"
-        id="transactions-section"
-      >
-
-        <div class="card table-card">
-
-          <div class="card-header">
-
+          <article class="insight-card" id="main-insight">
+            <div class="insight-symbol">✦</div>
             <div>
-              <div class="card-title">
-                Transaction history
-              </div>
-
-              <div class="card-subtitle">
-                Synthetic demo transactions
-              </div>
+              <span class="section-kicker">SAARTHI INSIGHT</span>
+              <h3>Finding your best savings opportunity…</h3>
+              <p>SAARTHI is analyzing your simulated financial activity.</p>
             </div>
+          </article>
+        </section>
 
+        <section class="section" id="analytics-section">
+          <div class="section-intro">
+            <span class="section-kicker">FINANCIAL INTELLIGENCE</span>
+            <h2>See where your money is going.</h2>
+            <p>Turn transaction history into patterns you can act on.</p>
           </div>
-
-          <div class="table-wrap">
-
-            <table>
-
-              <thead>
-
-                <tr>
-                  <th>Date</th>
-                  <th>Merchant</th>
-                  <th>Category</th>
-                  <th>Amount</th>
-                  <th>Status</th>
-                </tr>
-
-              </thead>
-
-              <tbody
-                id="transaction-table-body"
-              >
-
-                <tr>
-                  <td colspan="5">
-                    <div class="loading">
-                      Loading transactions…
-                    </div>
-                  </td>
-                </tr>
-
-              </tbody>
-
-            </table>
-
+          <div class="analytics-stats">
+            <div class="small-stat"><span>Income</span><strong id="analytics-income">—</strong></div>
+            <div class="small-stat"><span>Expenses</span><strong id="analytics-expenses">—</strong></div>
+            <div class="small-stat"><span>Net savings</span><strong id="analytics-savings">—</strong></div>
+            <div class="small-stat"><span>Savings rate</span><strong id="analytics-rate">—</strong></div>
           </div>
+          <div class="dashboard-grid">
+            <article class="panel">
+              <div class="panel-head"><div><span class="section-kicker">MONTHLY VIEW</span><h3>Expense trend</h3></div></div>
+              <div class="chart tall" id="analytics-chart"><div class="loading">Loading…</div></div>
+            </article>
+            <article class="panel">
+              <div class="panel-head"><div><span class="section-kicker">CATEGORIES</span><h3>Spending mix</h3></div></div>
+              <div id="analytics-categories" class="categories"><div class="loading">Loading…</div></div>
+            </article>
+          </div>
+          <div class="dashboard-grid lower">
+            <article class="panel">
+              <div class="panel-head"><div><span class="section-kicker">TOP MERCHANTS</span><h3>Where you spend most</h3></div></div>
+              <div id="top-merchants" class="transactions"><div class="loading">Loading…</div></div>
+            </article>
+            <article class="panel">
+              <div class="panel-head"><div><span class="section-kicker">RECURRING</span><h3>Regular payments</h3></div></div>
+              <div id="recurring-list" class="transactions"><div class="loading">Loading…</div></div>
+            </article>
+          </div>
+        </section>
 
-        </div>
-
-      </section>
-
-
-      <!-- =========================
-           ASK SAARTHI
-      ========================== -->
-
-      <section
-        class="section"
-        id="chat-section"
-      >
-
-        <div class="chat-layout">
-
-          <div class="card chat-intro">
-
-            <div class="insight-label">
-              AI FINANCE COMPANION
+        <section class="section" id="transactions-section">
+          <div class="section-intro">
+            <span class="section-kicker">SIMULATED ACTIVITY</span>
+            <h2>Your transactions.</h2>
+            <p>A transparent view of the synthetic activity powering this demo.</p>
+          </div>
+          <article class="panel table-panel">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Date</th><th>Merchant</th><th>Category</th><th>Amount</th><th>Status</th></tr></thead>
+                <tbody id="transaction-table-body"><tr><td colspan="5">Loading transactions…</td></tr></tbody>
+              </table>
             </div>
+          </article>
+        </section>
 
-            <h2>
-              Ask anything
-              about your money.
-            </h2>
-
-            <p>
-              Saarthi can explain spending patterns,
-              identify savings opportunities and help
-              you understand your financial behavior.
-            </p>
-
-
-            <div class="prompt-list">
-
-              <button class="prompt">
-                How much did I spend on food?
-              </button>
-
-              <button class="prompt">
-                Where can I save money?
-              </button>
-
-              <button class="prompt">
-                What is my highest spending category?
-              </button>
-
-              <button class="prompt">
-                What recurring bills do I have?
-              </button>
-
-              <button class="prompt">
-                What is my financial health score?
-              </button>
-
-            </div>
-
+        <section class="section" id="chat-section">
+          <div class="section-intro">
+            <span class="section-kicker">YOUR AI COMPANION</span>
+            <h2>Ask Saarthi.</h2>
+            <p>Ask questions about the simulated financial data in plain language.</p>
           </div>
-
-
-          <div class="card chat-box">
-
-            <div
-              class="chat-messages"
-              id="chat-messages"
-            >
-
-              <div class="message ai">
-                Hi! I'm Saarthi 👋
-                Ask me about your spending,
-                savings, transactions, bills
-                or financial health.
-              </div>
-
+          <article class="chat-panel">
+            <div class="chat-header">
+              <div class="assistant-avatar">S</div>
+              <div><strong>Saarthi</strong><span>Demo financial intelligence</span></div>
+              <span class="online">● Online</span>
             </div>
-
-
-            <div class="chat-input">
-
-              <input
-                type="text"
-                id="chat-input"
-                placeholder="Ask Saarthi a financial question…"
-                autocomplete="off"
-              />
-
-              <button
-                class="send-btn"
-                id="send-message"
-                aria-label="Send message"
-              >
-                ↑
-              </button>
-
+            <div class="chat-messages" id="chat-messages">
+              <div class="message ai">Hi! I'm Saarthi 👋 Ask me about your spending, savings, bills or financial health.</div>
             </div>
-
-          </div>
-
-        </div>
-
-      </section>
-
-
-      <!-- =========================
-           CONNECT BANK
-      ========================== -->
-
-      <section
-        class="section"
-        id="banks-section"
-      >
-
-        <div class="hero">
-
-          <div class="hero-content">
-
-            <h2>
-              Connect your financial world.
-            </h2>
-
-            <p>
-              In this hackathon demo, bank connections
-              are simulated. No credentials, real accounts
-              or real banking data are accessed.
-            </p>
-
-          </div>
-
-        </div>
-
-
-        <div class="card">
-
-          <div class="card-header">
-
-            <div>
-
-              <div class="card-title">
-                Available demo banks
-              </div>
-
-              <div class="card-subtitle">
-                Choose a simulated connection
-              </div>
-
+            <div class="prompts">
+              <button class="prompt">Where do I spend the most?</button>
+              <button class="prompt">How can I save money?</button>
+              <button class="prompt">What is my financial health?</button>
+              <button class="prompt">Show my food spending</button>
             </div>
-
-          </div>
-
-
-          <div class="card-body">
-
-            <div
-              class="bank-grid"
-              id="bank-list"
-            >
-
-              <div class="loading">
-                Loading demo banks…
-              </div>
-
+            <div class="chat-input-row">
+              <input id="chat-input" type="text" placeholder="Ask Saarthi anything about your demo finances…" autocomplete="off">
+              <button id="send-message" class="send-btn">Send ↑</button>
             </div>
+          </article>
+        </section>
 
+        <section class="section" id="banks-section">
+          <div class="section-intro">
+            <span class="section-kicker">DEMO CONNECTIONS</span>
+            <h2>Connect a bank.</h2>
+            <p>These are simulated connections for the hackathon. No credentials or real accounts are used.</p>
           </div>
-
-        </div>
-
-
-        <div
-          class="card"
-          style="margin-top:18px;"
-        >
-
-          <div class="card-body">
-
-            <div class="insight">
-
-              <div class="insight-label">
-                IMPORTANT
-              </div>
-
-              <h3>
-                This is a simulation environment.
-              </h3>
-
-              <p>
-                SAARTHI does not connect to real bank
-                accounts, does not request banking
-                credentials and does not move real money.
-                All transactions shown in this prototype
-                are synthetic data created for demonstration.
-              </p>
-
-            </div>
-
+          <div class="safety-banner">
+            <span>🔒</span>
+            <div><strong>Safe demo environment</strong><p>SAARTHI does not connect to real banking infrastructure. Every transaction and account shown here is synthetic.</p></div>
           </div>
-
-        </div>
-
-      </section>
-
-
-    </div>
-
-  </main>
-
-</div>
-
-
-<script src="app.js"></script>
-
-<script>
-  /*
-    Load demo banks when the page starts.
-    This keeps the bank section ready when judges open it.
-  */
-  window.addEventListener("DOMContentLoaded", () => {
-    if (typeof loadBanks === "function") {
-      loadBanks();
-    }
-  });
-</script>
-
+          <div id="bank-list" class="bank-grid"><div class="loading">Loading demo banks…</div></div>
+          <article class="panel simulation-panel">
+            <div><div><span class="section-kicker">PAYMENT DEMO</span><h3>Simulate a payment</h3><p>No real money is moved.</p></div><button class="btn btn-dark" id="simulate-payment">Simulate ₹2,100 →</button></div>
+          </article>
+        </section>
+      </div>
+    </main>
+  </div>
+  <script src="app.js"></script>
 </body>
 </html>
-      
-
-       
-           
-

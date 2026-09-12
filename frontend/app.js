@@ -1,737 +1,321 @@
-const API_BASE =
-  "https://saarthi-ai-that-understands-finance.onrender.com";
-
-let dashboardData = null;
-let analyticsData = null;
-let transactionsData = [];
+const API_BASE = "https://saarthi-ai-that-understands-finance.onrender.com";
 
 const $ = (id) => document.getElementById(id);
+let dashboardData = null;
+let analyticsData = null;
 
 async function api(path, options = {}) {
   const response = await fetch(`${API_BASE}${path}`, {
+    ...options,
     headers: {
-      "Content-Type": "application/json",
+      ...(options.body ? { "Content-Type": "application/json" } : {}),
       ...(options.headers || {})
-    },
-    ...options
+    }
   });
-
-  if (!response.ok) {
-    throw new Error(`API error: ${response.status}`);
-  }
-
+  if (!response.ok) throw new Error(`API ${response.status}`);
   return response.json();
 }
 
-/* =========================
-   INITIAL LOAD
-========================= */
-
 document.addEventListener("DOMContentLoaded", () => {
   setupNavigation();
-  setupChat();
+  setupHeroButtons();
   setupMobileMenu();
+  setupChat();
+  $("simulate-payment")?.addEventListener("click", simulatePayment);
   loadDashboard();
+  loadBanks();
 });
 
-/* =========================
-   NAVIGATION
-========================= */
-
 function setupNavigation() {
-  document.querySelectorAll(".nav-item").forEach((item) => {
-    item.addEventListener("click", () => {
-      const target = item.dataset.section;
-
-      if (!target) return;
-
-      document.querySelectorAll(".nav-item").forEach((nav) => {
-        nav.classList.remove("active");
-      });
-
-      item.classList.add("active");
-
-      document.querySelectorAll(".section").forEach((section) => {
-        section.classList.remove("active");
-      });
-
-      const section = $(`${target}-section`);
-
-      if (section) {
-        section.classList.add("active");
-      }
-
-      updatePageTitle(target);
-
-      if (target === "transactions") {
-        loadTransactions();
-      }
-
-      if (target === "analytics") {
-        loadAnalytics();
-      }
-
-      closeMobileMenu();
-    });
+  document.querySelectorAll(".nav-item").forEach(btn => {
+    btn.addEventListener("click", () => showSection(btn.dataset.section));
   });
 }
 
-function updatePageTitle(section) {
+function showSection(name) {
+  document.querySelectorAll(".nav-item").forEach(n => n.classList.toggle("active", n.dataset.section === name));
+  document.querySelectorAll(".section").forEach(s => s.classList.toggle("active", s.id === `${name}-section`));
   const titles = {
-    dashboard: [
-      "Financial overview",
-      "Your money, understood simply."
-    ],
-    analytics: [
-      "Financial intelligence",
-      "See where your money is going."
-    ],
-    transactions: [
-      "Transactions",
-      "Your simulated financial activity."
-    ],
-    chat: [
-      "Ask Saarthi",
-      "Your AI financial companion."
-    ],
-    banks: [
-      "Connect bank",
-      "Demo bank connections only."
-    ]
+    dashboard: ["Financial overview", "Your money, understood simply."],
+    analytics: ["Financial intelligence", "See where your money is going."],
+    transactions: ["Transactions", "Your simulated financial activity."],
+    chat: ["Ask Saarthi", "Your AI financial companion."],
+    banks: ["Connect bank", "Demo bank connections only."]
   };
-
-  const data = titles[section] || titles.dashboard;
-
-  const title = $("page-title");
-  const subtitle = $("page-subtitle");
-
-  if (title) title.textContent = data[0];
-  if (subtitle) subtitle.textContent = data[1];
+  const t = titles[name] || titles.dashboard;
+  setText("page-title", t[0]);
+  setText("page-subtitle", t[1]);
+  if (name === "analytics") loadAnalytics();
+  if (name === "transactions") loadTransactions();
+  closeMobileMenu();
 }
 
-/* =========================
-   MOBILE MENU
-========================= */
+function setupHeroButtons() {
+  document.querySelectorAll("[data-go]").forEach(btn => {
+    btn.addEventListener("click", () => showSection(btn.dataset.go));
+  });
+}
 
 function setupMobileMenu() {
-  const button = $("mobile-menu");
-
-  if (!button) return;
-
-  button.addEventListener("click", () => {
-    $("sidebar")?.classList.toggle("open");
-  });
+  $("mobile-menu")?.addEventListener("click", () => $("sidebar")?.classList.toggle("open"));
 }
-
-function closeMobileMenu() {
-  $("sidebar")?.classList.remove("open");
-}
-
-/* =========================
-   DASHBOARD
-========================= */
+function closeMobileMenu() { $("sidebar")?.classList.remove("open"); }
 
 async function loadDashboard() {
   try {
     const data = await api("/api/dashboard");
-
     dashboardData = data;
-    analyticsData = data;
-
     renderDashboard(data);
-  } catch (error) {
-    console.error(error);
-    showError("dashboard", "Unable to load demo financial data.");
+  } catch (err) {
+    console.error("SAARTHI dashboard:", err);
+    showError("dashboard", "Unable to reach the demo finance service.");
   }
 }
 
 function renderDashboard(data) {
-  setText("balance", formatCurrency(data.balance));
-  setText("income", formatCurrency(data.totalIncome));
-  setText("expenses", formatCurrency(data.totalExpenses));
-  setText("savings", formatCurrency(data.netSavings));
-
-  setText(
-    "savings-rate",
-    `${data.savingsRate}% savings rate`
-  );
-
-  setText(
-    "health-score",
-    `${data.healthScore}`
-  );
-
-  setText(
-    "potential-savings",
-    formatCurrency(data.potentialSavings)
-  );
-
-  if (data.highestCategory) {
-    setText(
-      "highest-category",
-      data.highestCategory.category
-    );
-
-    setText(
-      "highest-category-amount",
-      formatCurrency(data.highestCategory.amount)
-    );
-  }
-
-  renderCategories(
-    data.categories,
-    $("dashboard-categories")
-  );
-
-  renderMonthlyChart(
-    data.monthly,
-    $("monthly-chart")
-  );
-
-  renderTransactions(
-    data.recentTransactions || [],
-    $("recent-transactions")
-  );
-
+  setText("balance", money(data.balance));
+  setText("income", money(data.totalIncome));
+  setText("expenses", money(data.totalExpenses));
+  setText("savings", money(data.netSavings));
+  setText("savings-rate", `${data.savingsRate ?? 0}% savings rate`);
+  setText("health-score", data.healthScore ?? "—");
+  setText("potential-savings", money(data.potentialSavings || 0));
+  renderCategories(data.categories, $("dashboard-categories"));
+  renderChart(data.monthly, $("monthly-chart"));
+  renderTransactions(data.recentTransactions || [], $("recent-transactions"));
   renderInsight(data);
-  renderHealth(data.healthScore);
+  renderHealth(Number(data.healthScore) || 0);
 }
-
-/* =========================
-   ANALYTICS
-========================= */
 
 async function loadAnalytics() {
   try {
-    const data = await api("/api/analytics");
-
-    analyticsData = data.analytics;
-
+    const response = await api("/api/analytics");
+    analyticsData = response.analytics || response;
     renderAnalytics(analyticsData);
-  } catch (error) {
-    console.error(error);
+  } catch (err) {
+    console.error("SAARTHI analytics:", err);
     showError("analytics", "Analytics could not be loaded.");
   }
 }
 
 function renderAnalytics(data) {
-  setText(
-    "analytics-income",
-    formatCurrency(data.totalIncome)
-  );
-
-  setText(
-    "analytics-expenses",
-    formatCurrency(data.totalExpenses)
-  );
-
-  setText(
-    "analytics-savings",
-    formatCurrency(data.netSavings)
-  );
-
-  setText(
-    "analytics-rate",
-    `${data.savingsRate}%`
-  );
-
-  renderCategories(
-    data.categories,
-    $("analytics-categories")
-  );
-
-  renderMonthlyChart(
-    data.monthly,
-    $("analytics-chart")
-  );
-
-  renderMerchants(
-    data.topMerchants,
-    $("top-merchants")
-  );
-
-  renderRecurring(
-    data.recurring,
-    $("recurring-list")
-  );
+  setText("analytics-income", money(data.totalIncome));
+  setText("analytics-expenses", money(data.totalExpenses));
+  setText("analytics-savings", money(data.netSavings));
+  setText("analytics-rate", `${data.savingsRate ?? 0}%`);
+  renderCategories(data.categories, $("analytics-categories"));
+  renderChart(data.monthly, $("analytics-chart"));
+  renderMerchants(data.topMerchants, $("top-merchants"));
+  renderRecurring(data.recurring, $("recurring-list"));
 }
-
-/* =========================
-   TRANSACTIONS
-========================= */
 
 async function loadTransactions() {
   try {
-    const data = await api("/api/transactions");
-
-    transactionsData = data.transactions;
-
-    renderTransactionTable(transactionsData);
-  } catch (error) {
-    console.error(error);
-    showError(
-      "transactions",
-      "Transactions could not be loaded."
-    );
+    const response = await api("/api/transactions");
+    renderTransactionTable(response.transactions || []);
+  } catch (err) {
+    console.error("SAARTHI transactions:", err);
+    showError("transactions", "Transactions could not be loaded.");
   }
 }
 
-function renderTransactionTable(transactions) {
+function renderCategories(items, container) {
+  if (!container) return;
+  if (!Array.isArray(items) || !items.length) {
+    container.innerHTML = '<div class="loading">No category data.</div>';
+    return;
+  }
+  const max = Math.max(...items.map(x => Number(x.amount) || 0), 1);
+  container.innerHTML = items.map(x => {
+    const pct = Math.round((Number(x.amount) / max) * 100);
+    return `<div class="category-row">
+      <div class="category-name">${esc(x.category)}</div>
+      <div class="progress"><div class="progress-fill" style="width:${pct}%"></div></div>
+      <div class="category-amount">${money(x.amount)}</div>
+    </div>`;
+  }).join("");
+}
+
+function renderChart(items, container) {
+  if (!container) return;
+  if (!Array.isArray(items) || !items.length) {
+    container.innerHTML = '<div class="loading">No monthly data.</div>';
+    return;
+  }
+  const max = Math.max(...items.map(x => Number(x.expenses) || 0), 1);
+  container.innerHTML = items.map(x => {
+    const h = Math.max(8, Math.round((Number(x.expenses) / max) * 82));
+    return `<div class="chart-column">
+      <div class="chart-bar" style="height:${h}%"></div>
+      <div class="chart-value">${shortMoney(x.expenses)}</div>
+      <div class="chart-label">${monthLabel(x.month)}</div>
+    </div>`;
+  }).join("");
+}
+
+function renderTransactions(items, container) {
+  if (!container) return;
+  container.innerHTML = items.length ? items.map(t => {
+    const negative = Number(t.amount) < 0;
+    return `<div class="transaction">
+      <div class="transaction-icon">${icon(t.category)}</div>
+      <div class="transaction-info">
+        <div class="transaction-name">${esc(t.merchant)}</div>
+        <div class="transaction-date">${dateLabel(t.date)} · ${esc(t.category)}</div>
+      </div>
+      <div class="transaction-amount ${negative ? "negative" : "positive"}">${negative ? "−" : "+"}${money(Math.abs(t.amount))}</div>
+    </div>`;
+  }).join("") : '<div class="loading">No transactions.</div>';
+}
+
+function renderTransactionTable(items) {
   const body = $("transaction-table-body");
-
   if (!body) return;
-
-  body.innerHTML = "";
-
-  transactions.forEach((transaction) => {
-    const row = document.createElement("tr");
-
-    const amountClass =
-      transaction.amount < 0
-        ? "negative"
-        : "positive";
-
-    const amount =
-      transaction.amount < 0
-        ? `−${formatCurrency(Math.abs(transaction.amount))}`
-        : `+${formatCurrency(transaction.amount)}`;
-
-    row.innerHTML = `
-      <td>${formatDate(transaction.date)}</td>
-      <td>${escapeHTML(transaction.merchant)}</td>
-      <td>
-        <span class="badge">
-          ${escapeHTML(transaction.category)}
-        </span>
-      </td>
-      <td class="${amountClass}">
-        ${amount}
-      </td>
-      <td>
-        <span class="badge">Simulated</span>
-      </td>
-    `;
-
-    body.appendChild(row);
-  });
+  body.innerHTML = items.length ? items.map(t => {
+    const negative = Number(t.amount) < 0;
+    return `<tr>
+      <td>${dateLabel(t.date)}</td>
+      <td>${esc(t.merchant)}</td>
+      <td><span class="badge">${esc(t.category)}</span></td>
+      <td class="${negative ? "negative" : "positive"}">${negative ? "−" : "+"}${money(Math.abs(t.amount))}</td>
+      <td><span class="badge">Simulated</span></td>
+    </tr>`;
+  }).join("") : '<tr><td colspan="5">No transactions.</td></tr>';
 }
 
-/* =========================
-   CATEGORIES
-========================= */
-
-function renderCategories(categories, container) {
+function renderMerchants(items, container) {
   if (!container) return;
-
-  if (!categories || !categories.length) {
-    container.innerHTML =
-      `<div class="loading">No category data available.</div>`;
-    return;
-  }
-
-  const max =
-    Math.max(...categories.map((item) => item.amount));
-
-  container.innerHTML = categories
-    .map((item) => {
-      const percentage =
-        max > 0
-          ? Math.round((item.amount / max) * 100)
-          : 0;
-
-      return `
-        <div class="category-row">
-          <div class="category-name">
-            ${escapeHTML(item.category)}
-          </div>
-
-          <div class="progress">
-            <div
-              class="progress-fill"
-              style="width:${percentage}%"
-            ></div>
-          </div>
-
-          <div class="category-amount">
-            ${formatCurrency(item.amount)}
-          </div>
-        </div>
-      `;
-    })
-    .join("");
+  container.innerHTML = (items || []).map((x, i) => `<div class="transaction">
+    <div class="transaction-icon">${i + 1}</div>
+    <div class="transaction-info"><div class="transaction-name">${esc(x.merchant)}</div><div class="transaction-date">Total spending</div></div>
+    <div class="transaction-amount negative">−${money(x.amount)}</div>
+  </div>`).join("") || '<div class="loading">No merchant data.</div>';
 }
-
-/* =========================
-   MONTHLY CHART
-========================= */
-
-function renderMonthlyChart(months, container) {
-  if (!container) return;
-
-  if (!months || !months.length) {
-    container.innerHTML =
-      `<div class="loading">No monthly data available.</div>`;
-    return;
-  }
-
-  const max =
-    Math.max(...months.map((m) => m.expenses));
-
-  container.innerHTML = months
-    .map((month) => {
-      const height =
-        max > 0
-          ? Math.max(
-              10,
-              Math.round(
-                (month.expenses / max) * 82
-              )
-            )
-          : 10;
-
-      const label = formatMonth(month.month);
-
-      return `
-        <div class="chart-column">
-          <div
-            class="chart-bar"
-            style="height:${height}%"
-            title="${formatCurrency(month.expenses)} spent"
-          ></div>
-
-          <div class="chart-value">
-            ${formatCurrencyShort(month.expenses)}
-          </div>
-
-          <div class="chart-label">
-            ${label}
-          </div>
-        </div>
-      `;
-    })
-    .join("");
-}
-
-/* =========================
-   MERCHANTS
-========================= */
-
-function renderMerchants(merchants, container) {
-  if (!container) return;
-
-  if (!merchants || !merchants.length) {
-    container.innerHTML =
-      `<div class="loading">No merchant data available.</div>`;
-    return;
-  }
-
-  container.innerHTML = merchants
-    .map(
-      (merchant, index) => `
-        <div class="transaction">
-          <div class="transaction-icon">
-            ${index + 1}
-          </div>
-
-          <div class="transaction-info">
-            <div class="transaction-name">
-              ${escapeHTML(merchant.merchant)}
-            </div>
-
-            <div class="transaction-date">
-              Total spending
-            </div>
-          </div>
-
-          <div class="transaction-amount negative">
-            −${formatCurrency(merchant.amount)}
-          </div>
-        </div>
-      `
-    )
-    .join("");
-}
-
-/* =========================
-   RECURRING
-========================= */
 
 function renderRecurring(items, container) {
   if (!container) return;
-
-  if (!items || !items.length) {
-    container.innerHTML =
-      `<div class="loading">No recurring payments.</div>`;
-    return;
-  }
-
-  container.innerHTML = items
-    .map(
-      (item) => `
-        <div class="transaction">
-          <div class="transaction-icon">
-            ↻
-          </div>
-
-          <div class="transaction-info">
-            <div class="transaction-name">
-              ${escapeHTML(item.name)}
-            </div>
-
-            <div class="transaction-date">
-              ${escapeHTML(item.frequency)}
-            </div>
-          </div>
-
-          <div class="transaction-amount">
-            ${formatCurrency(item.amount)}
-          </div>
-        </div>
-      `
-    )
-    .join("");
+  container.innerHTML = (items || []).map(x => `<div class="transaction">
+    <div class="transaction-icon">↻</div>
+    <div class="transaction-info"><div class="transaction-name">${esc(x.name)}</div><div class="transaction-date">${esc(x.frequency || "Monthly")}</div></div>
+    <div class="transaction-amount">${money(x.amount)}</div>
+  </div>`).join("") || '<div class="loading">No recurring payments.</div>';
 }
-
-/* =========================
-   RECENT TRANSACTIONS
-========================= */
-
-function renderTransactions(transactions, container) {
-  if (!container) return;
-
-  if (!transactions.length) {
-    container.innerHTML =
-      `<div class="loading">No transactions available.</div>`;
-    return;
-  }
-
-  container.innerHTML = transactions
-    .map((transaction) => {
-      const icon = getCategoryIcon(
-        transaction.category
-      );
-
-      const amount =
-        transaction.amount < 0
-          ? `−${formatCurrency(Math.abs(transaction.amount))}`
-          : `+${formatCurrency(transaction.amount)}`;
-
-      const amountClass =
-        transaction.amount < 0
-          ? "negative"
-          : "positive";
-
-      return `
-        <div class="transaction">
-          <div class="transaction-icon">
-            ${icon}
-          </div>
-
-          <div class="transaction-info">
-            <div class="transaction-name">
-              ${escapeHTML(transaction.merchant)}
-            </div>
-
-            <div class="transaction-date">
-              ${formatDate(transaction.date)}
-              ·
-              ${escapeHTML(transaction.category)}
-            </div>
-          </div>
-
-          <div class="transaction-amount ${amountClass}">
-            ${amount}
-          </div>
-        </div>
-      `;
-    })
-    .join("");
-}
-
-/* =========================
-   INSIGHTS
-========================= */
 
 function renderInsight(data) {
-  const insight = $("main-insight");
-
-  if (!insight) return;
-
+  const el = $("main-insight");
+  if (!el) return;
   const category = data.highestCategory?.category || "spending";
-
-  insight.innerHTML = `
-    <div class="insight-label">
-      Saarthi insight
-    </div>
-
-    <h3>
-      Your biggest opportunity is ${escapeHTML(category.toLowerCase())}.
-    </h3>
-
-    <p>
-      Saarthi estimates that you could potentially save
-      ${formatCurrency(data.potentialSavings)}
-      by reducing discretionary food and shopping expenses.
-    </p>
-  `;
+  el.innerHTML = `<div class="insight-symbol">✦</div><div>
+    <span class="section-kicker">SAARTHI INSIGHT</span>
+    <h3>Your biggest opportunity is ${esc(category.toLowerCase())}.</h3>
+    <p>Saarthi estimates that you could potentially save ${money(data.potentialSavings || 0)} by reducing discretionary food and shopping expenses.</p>
+  </div>`;
 }
-
-/* =========================
-   HEALTH
-========================= */
 
 function renderHealth(score) {
-  const ring = $("health-ring");
-
-  if (ring) {
-    ring.style.setProperty(
-      "--score",
-      `${score}%`
-    );
-  }
-
-  const label = $("health-label");
-
-  if (!label) return;
-
-  if (score >= 80) {
-    label.textContent = "Strong financial health";
-  } else if (score >= 60) {
-    label.textContent = "Healthy with room to improve";
-  } else {
-    label.textContent = "Needs attention";
-  }
+  $("health-ring")?.style.setProperty("--score", `${Math.max(0, Math.min(100, score))}%`);
+  setText("health-label", score >= 80 ? "Strong financial health" : score >= 60 ? "Healthy with room to improve" : "Needs attention");
 }
-
-/* =========================
-   CHAT
-========================= */
 
 function setupChat() {
-  const input = $("chat-input");
-  const button = $("send-message");
-
-  if (!input || !button) return;
-
-  button.addEventListener("click", sendChatMessage);
-
-  input.addEventListener("keydown", (event) => {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      sendChatMessage();
-    }
+  $("send-message")?.addEventListener("click", sendChat);
+  $("chat-input")?.addEventListener("keydown", e => {
+    if (e.key === "Enter") { e.preventDefault(); sendChat(); }
   });
-
-  document.querySelectorAll(".prompt").forEach((prompt) => {
-    prompt.addEventListener("click", () => {
-      input.value = prompt.textContent.trim();
-      sendChatMessage();
-    });
-  });
+  document.querySelectorAll(".prompt").forEach(p => p.addEventListener("click", () => {
+    const input = $("chat-input");
+    if (input) { input.value = p.textContent.trim(); sendChat(); }
+  }));
 }
 
-async function sendChatMessage() {
+async function sendChat() {
   const input = $("chat-input");
-
   if (!input) return;
-
   const message = input.value.trim();
-
   if (!message) return;
-
-  addChatMessage(message, "user");
-
+  addMessage(message, "user");
   input.value = "";
-
-  const thinking = addChatMessage(
-    "Thinking…",
-    "ai"
-  );
-
+  const thinking = addMessage("Thinking…", "ai");
   try {
-    const data = await api("/api/chat", {
-      method: "POST",
-      body: JSON.stringify({
-        message
-      })
-    });
-
-    thinking.textContent =
-      data.reply || "I couldn't generate an answer.";
-  } catch (error) {
-    console.error(error);
-
-    thinking.textContent =
-      "I'm having trouble reaching the Saarthi demo service. Please try again.";
+    const result = await api("/api/chat", { method: "POST", body: JSON.stringify({ message }) });
+    if (thinking) thinking.textContent = result.reply || "I couldn't generate an answer.";
+  } catch {
+    if (thinking) thinking.textContent = "The demo service is temporarily unavailable. Please try again.";
   }
 }
 
-function addChatMessage(text, type) {
-  const messages = $("chat-messages");
-
-  if (!messages) return null;
-
-  const message = document.createElement("div");
-
-  message.className =
-    `message ${type}`;
-
-  message.textContent = text;
-
-  messages.appendChild(message);
-
-  messages.scrollTop =
-    messages.scrollHeight;
-
-  return message;
+function addMessage(text, type) {
+  const box = $("chat-messages");
+  if (!box) return null;
+  const el = document.createElement("div");
+  el.className = `message ${type}`;
+  el.textContent = text;
+  box.appendChild(el);
+  box.scrollTop = box.scrollHeight;
+  return el;
 }
 
-/* =========================
-   BANKS
-========================= */
-
 async function loadBanks() {
-  const container = $("bank-list");
-
-  if (!container) return;
-
-  container.innerHTML =
-    `<div class="loading">Loading demo banks…</div>`;
-
+  const box = $("bank-list");
+  if (!box) return;
   try {
     const banks = await api("/api/banks");
+    box.innerHTML = banks.map(b => `<div class="panel bank-card">
+      <div class="bank-logo">${esc(b.shortName || b.name.slice(0,3))}</div>
+      <div class="bank-info"><strong>${esc(b.name)}</strong><span>Synthetic demo connection</span></div>
+      <button class="connect-btn" data-bank="${esc(b.name)}">Connect</button>
+    </div>`).join("");
+    box.querySelectorAll(".connect-btn").forEach(btn => btn.addEventListener("click", () => {
+      alert(`${btn.dataset.bank} demo connection successful.\nNo real bank account was connected.`);
+    }));
+  } catch {
+    box.innerHTML = '<div class="loading">Demo banks could not be loaded.</div>';
+  }
+}
 
-    container.innerHTML = banks
-      .map(
-        (bank) => `
-          <div class="card bank-card">
-            <div class="bank-logo">
-              ${escapeHTML(
-                bank.shortName ||
-                bank.name.substring(0, 3)
-              )}
-            </div>
+async function simulatePayment() {
+  try {
+    const result = await api("/api/payment/simulate", {
+      method: "POST",
+      body: JSON.stringify({ amount: 2100 })
+    });
+    alert(`${result.message}\nTransaction ID: ${result.transactionId}`);
+  } catch {
+    alert("Payment simulation could not be completed.");
+  }
+}
 
-            <div class="bank-info">
-              <strong>
-                ${escapeHTML(bank.name)}
-              </strong>
+function showError(section, message) {
+  const target = $(`${section}-section`);
+  if (!target || target.querySelector(".api-error")) return;
+  const el = document.createElement("div");
+  el.className = "api-error";
+  el.textContent = message;
+  target.prepend(el);
+}
 
-              <span>
-                Synthetic demo connection
-              </span>
-            </div>
-
-            <button
-              class="connect-btn"
-              onclick="simulateBankConnection('${escapeHTML(bank.name)}')"
-            >
-              Connect
-            </button>
-          </div>
-        `
-      )
-      .join("");
-  } catch (error) {
-    container.innerHTML =
-     
+function setText(id, value) {
+  const el = $(id);
+  if (el) el.textContent = value;
+}
+function money(value) {
+  return `₹${(Number(value) || 0).toLocaleString("en-IN")}`;
+}
+function shortMoney(value) {
+  const n = Number(value) || 0;
+  return n >= 100000 ? `₹${(n/100000).toFixed(1)}L` : n >= 1000 ? `₹${Math.round(n/1000)}K` : `₹${n}`;
+}
+function monthLabel(value) {
+  if (!value) return "—";
+  return new Date(`${value}-01T00:00:00`).toLocaleDateString("en-IN", { month:"short" });
+}
+function dateLabel(value) {
+  if (!value) return "—";
+  return new Date(`${value}T00:00:00`).toLocaleDateString("en-IN", { day:"2-digit", month:"short" });
+}
+function icon(category) {
+  return ({Food:"🍽",Shopping:"🛍",Transport:"🚗",Bills:"▣",Income:"↗"})[category] || "•";
+}
+function esc(value) {
+  return String(value ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
+}
