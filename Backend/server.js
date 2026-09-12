@@ -228,7 +228,7 @@ app.post('/api/chat',async(req,res)=>{
 
   const toolkit={state,analyze,auditTransactions,money,investigateFinances};
   try{
-    const ai=await runSaarthi({state,message:q,toolkit});
+    const requestedLanguage=String(req.body?.language||'').trim(); const localizedMessage=requestedLanguage?`Respond in ${requestedLanguage==='hi'?'Hindi':requestedLanguage==='gu'?'Gujarati':'English'} unless the user explicitly asks for another language.\n\n${q}`:q; const ai=await runSaarthi({state,message:localizedMessage,toolkit});
     if(ai.configured && ai.reply){
       state.history.push({q,reply:ai.reply,mode:'ai'});
       return res.json({reply:ai.reply,analytics:analyze(state.transactions,state.problem),mode:'ai'});
