@@ -3,6 +3,7 @@ const cors = require('cors');
 const multer = require('multer');
 const XLSX = require('xlsx');
 const path = require('path');
+const { runSaarthi } = require('./ai/agent');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -182,10 +183,25 @@ app.post('/api/import',upload.single('file'),(req,res)=>{
   }catch(e){res.status(400).json({ok:false,error:`Could not read this file: ${e.message}`});}
 });
 app.post('/api/analyze',(req,res)=>{ const state=getState(req); if(req.body?.problem!==undefined) state.problem=String(req.body.problem); if(!state.transactions.length) return res.status(400).json({ok:false,error:'Give Saarthi some financial data first.'}); state.context=contextFrom(state.transactions,state.problem,state.source,state.filename); const analytics=analyze(state.transactions,state.problem); res.json({ok:true,analytics,context:state.context}); });
-app.post('/api/chat',(req,res)=>{
+app.post('/api/chat',async(req,res)=>{
   const state=getState(req);
-  const q=String(req.body?.message||'').trim(); if(!q)return res.status(400).json({error:'Ask a question.'});
-  if(!state.transactions.length) return res.json({reply:'I’m ready. Upload an Excel/CSV file or paste your financial data first. Then tell me what decision you want to make.',needsData:true});
+  const q=String(req.body?.message||'').trim();
+  if(!q)return res.status(400).json({error:'Ask a question.'});
+  if(!state.transactions.length) return res.json({reply:'I’m ready. Upload an Excel/CSV file or paste your financial data first. Then tell me what you want to figure out.',needsData:true});
+
+  const toolkit={state,analyze,auditTransactions,money};
+  try{
+    const ai=await runSaarthi({state,message:q,toolkit});
+    if(ai.configured && ai.reply){
+      state.history.push({q,reply:ai.reply,mode:'ai'});
+      return res.json({reply:ai.reply,analytics:analyze(state.transactions,state.problem),mode:'ai'});
+    }
+  }catch(e){
+    console.error('Saarthi AI error:',e.message);
+    if(process.env.SAARTHI_STRICT_AI==='1') return res.status(502).json({error:`Saarthi AI could not complete the request: ${e.message}`});
+  }
+
+  // Deterministic fallback keeps the prototype usable when no API key is configured.
   const a=analyze(state.transactions,`${state.problem}\n${q}`); const s=q.toLowerCase(); let reply='';
   const findCat=(name)=>a.categories.find(c=>c.category.toLowerCase()===name.toLowerCase())?.amount||0;
   if(/most|highest|largest|spend.*where/.test(s)) reply=`Your largest detected expense is ${a.highestCategory?`${a.highestCategory.category} at ${money(a.highestCategory.amount)}`:'not identifiable yet'}. ${a.insights[0]?.text||''}`;
@@ -195,8 +211,11 @@ app.post('/api/chat',(req,res)=>{
   else if(/health|score/.test(s)) reply=`Your current Saarthi financial-health indicator is ${a.healthScore}/100. It is an analytical signal based on detected savings rate and expense structure, not a credit score.`;
   else if(/summary|overview|analyse|analyze/.test(s)) reply=`I found ${a.transactionCount} usable transactions: income ${money(a.totalIncome)}, expenses ${money(a.totalExpenses)}, surplus ${money(a.netSavings)} (${a.savingsRate}%). ${a.highestCategory?`Largest category: ${a.highestCategory.category}.`:''} ${a.recommendation}`;
   else reply=`Based on your current data: ${a.recommendation} Ask me about affordability, saving, a category, unusual spending, or a specific what-if scenario.`;
-  state.history.push({q,reply}); res.json({reply,analytics:a});
+  state.history.push({q,reply,mode:'fallback'}); res.json({reply,analytics:a,mode:'fallback'});
 });
+
+app.get('/api/ai-status',(req,res)=>res.json({configured:Boolean(process.env.OPENAI_API_KEY),model:process.env.SAARTHI_MODEL||'gpt-5.6-luna'}));
+
 app.post('/api/simulate',(req,res)=>{ const state=getState(req); if(!state.transactions.length)return res.status(400).json({error:'Load data first.'}); const category=String(req.body?.category||''); const reduction=Math.max(0,Math.min(100,Number(req.body?.reduction)||0)); const amount=analyze(state.transactions,state.problem).categories.find(c=>c.category===category)?.amount||0; const monthlySave=amount*reduction/100; const before=analyze(state.transactions,state.problem); res.json({category,reduction,categoryAmount:amount,savingsPerPeriod:Math.round(monthlySave),yearlySavings:Math.round(monthlySave*12),newSurplus:Math.round(before.netSavings+monthlySave)}); });
 app.post('/api/reset',(req,res)=>{const state=getState(req);reset(state);res.json({ok:true});});
 app.get('/api/dashboard',(req,res)=>{const state=getState(req);const a=analyze(state.transactions,state.problem);res.json({balance:null,...a,recentTransactions:state.transactions.slice(0,8),hasData:state.transactions.length>0});});
