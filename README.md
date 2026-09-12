@@ -28,3 +28,11 @@ This prototype does **not** connect to real bank accounts, payment rails, creden
 ## Architecture
 Browser → Express API → Data parser → Financial reasoning/calculation engine → structured insights → dynamic UI.
 No final recommendation is hardcoded into the frontend.
+
+
+## v6 additions
+- Bank Forms & KYC assistant: turns long procedures into guided steps, checklists and copy-ready preparation without collecting passwords, OTPs, PINs, CVV or government-ID numbers.
+- Language switcher: English, Hindi and Gujarati UI support.
+- AI Copilot inside every intelligence feature, using the same financial context.
+- Preserves the financial intelligence flow: user data → interpretation → calculations → pattern detection → audit → goals → affordability → decision lab → recommendation → what-if simulation.
+- Keeps professional positioning: Saarthi is a first-pass intelligence layer for individuals, business owners and CAs; it does not replace professional review.
