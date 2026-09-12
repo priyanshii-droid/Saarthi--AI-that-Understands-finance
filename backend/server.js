@@ -163,7 +163,7 @@ function reset(state){ state.transactions=[];state.problem='';state.source='none
 
 const banks=[{id:'sbi',name:'State Bank of India',shortName:'SBI'},{id:'hdfc',name:'HDFC Bank',shortName:'HDFC'},{id:'icici',name:'ICICI Bank',shortName:'ICICI'},{id:'axis',name:'Axis Bank',shortName:'AXIS'}];
 app.get('/api/banks',(req,res)=>res.json(banks));
-app.get('/api/transactions',(req,res)=>res.json({transactions:state.transactions,hasData:state.transactions.length>0}));
+app.get('/api/transactions',(req,res)=>{const state=getState(req);res.json({transactions:state.transactions,hasData:state.transactions.length>0});});
 app.get('/api/health',(req,res)=>res.json({ok:true,service:'SAARTHI',mode:'user-data-intelligence'}));
 app.get('/api/state',(req,res)=>{const state=getState(req);const a=analyze(state.transactions,state.problem);res.json({hasData:state.transactions.length>0,problem:state.problem,source:state.source,filename:state.filename,context:state.context,analytics:a,transactions:state.transactions.slice(0,100)});});
 app.post('/api/load-sample',(req,res)=>{const state=getState(req);state.transactions=demoTransactions;state.problem=req.body?.problem||'Help me understand my spending and find a realistic way to save more.';state.source='sample';state.filename='Saarthi example dataset';state.context=contextFrom(state.transactions,state.problem,state.source,state.filename);res.json({ok:true,analytics:analyze(state.transactions,state.problem),context:state.context});});
