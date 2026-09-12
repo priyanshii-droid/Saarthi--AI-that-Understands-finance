@@ -13,56 +13,20 @@ function applyLanguage(lang){
   const sel=$("language-select"), authSel=$("auth-language"); if(sel)sel.value=lang;if(authSel)authSel.value=lang;
   const first=$("chat-messages")?.querySelector(".message.ai"); if(first && first.dataset.default==="yes") first.textContent=t.welcome;
 }
-function setTextEl(el,text){
-  if(!el)return;
-  const span=el.querySelector("span");
-  const textNodes=[...el.childNodes].filter(n=>n.nodeType===3);
-  if(textNodes.length) textNodes[0].textContent=text+" ";
-  else el.insertBefore(document.createTextNode(text+" "),span||null);
-}); if(span) el.appendChild(document.createTextNode(text));}
-
-const FULL_TRANSLATIONS={
-en:{
-"Financial overview":"Financial overview","Your money, understood simply.":"Your money, understood simply.","Dashboard":"Dashboard","Analytics":"Analytics","Transactions":"Transactions","Ask Saarthi":"Ask Saarthi","Connect Bank":"Connect Bank","Financial intelligence":"Financial intelligence","See where your money is going.":"See where your money is going.","Your simulated financial activity.":"Your simulated financial activity.","Your AI financial companion.":"Your AI financial companion.","Demo bank connections only.":"Demo bank connections only.","Ask Saarthi":"Ask Saarthi","Your money, understood.":"Your money, understood.","Sign in to continue to your personal financial intelligence dashboard.":"Sign in to continue to your personal financial intelligence dashboard.","Email address":"Email address","Password":"Password","Sign in securely →":"Sign in securely →","Continue with demo account":"Continue with demo account","Where do I spend the most?":"Where do I spend the most?","How can I save money?":"How can I save money?","What is my financial health?":"What is my financial health?","Show my food spending":"Show my food spending"
-},
-hi:{
-"Financial overview":"वित्तीय अवलोकन","Your money, understood simply.":"आपके पैसे को सरलता से समझें।","Dashboard":"डैशबोर्ड","Analytics":"विश्लेषण","Transactions":"लेन-देन","Ask Saarthi":"सारथी से पूछें","Connect Bank":"बैंक जोड़ें","Financial intelligence":"वित्तीय बुद्धिमत्ता","See where your money is going.":"देखें आपका पैसा कहाँ जा रहा है।","Your simulated financial activity.":"आपकी सिम्युलेटेड वित्तीय गतिविधि।","Your AI financial companion.":"आपका AI वित्तीय साथी।","Demo bank connections only.":"केवल डेमो बैंक कनेक्शन।","Your money, understood.":"आपके पैसे को समझें।","Sign in to continue to your personal financial intelligence dashboard.":"अपने व्यक्तिगत वित्तीय डैशबोर्ड पर जाने के लिए साइन इन करें।","Email address":"ईमेल पता","Password":"पासवर्ड","Sign in securely →":"सुरक्षित साइन इन →","Continue with demo account":"डेमो अकाउंट से जारी रखें","Where do I spend the most?":"मैं सबसे ज्यादा कहाँ खर्च करता हूँ?","How can I save money?":"मैं पैसे कैसे बचाऊँ?","What is my financial health?":"मेरा वित्तीय स्वास्थ्य कैसा है?","Show my food spending":"मेरा भोजन खर्च दिखाएँ"
-},
-gu:{
-"Financial overview":"નાણાકીય ઝાંખી","Your money, understood simply.":"તમારા પૈસાને સરળતાથી સમજો.","Dashboard":"ડેશબોર્ડ","Analytics":"વિશ્લેષણ","Transactions":"વ્યવહારો","Ask Saarthi":"સારથીને પૂછો","Connect Bank":"બેંક જોડો","Financial intelligence":"નાણાકીય બુદ્ધિ","See where your money is going.":"તમારા પૈસા ક્યાં જાય છે તે જુઓ.","Your simulated financial activity.":"તમારી સિમ્યુલેટેડ નાણાકીય પ્રવૃત્તિ.","Your AI financial companion.":"તમારો AI નાણાકીય સાથી.","Demo bank connections only.":"માત્ર ડેમો બેંક કનેક્શન.","Your money, understood.":"તમારા પૈસાને સમજો.","Sign in to continue to your personal financial intelligence dashboard.":"તમારા વ્યક્તિગત નાણાકીય ડેશબોર્ડમાં આગળ વધવા સાઇન ઇન કરો.","Email address":"ઈમેલ સરનામું","Password":"પાસવર્ડ","Sign in securely →":"સુરક્ષિત સાઇન ઇન →","Continue with demo account":"ડેમો એકાઉન્ટ સાથે ચાલુ રાખો","Where do I spend the most?":"હું સૌથી વધુ ક્યાં ખર્ચું છું?","How can I save money?":"હું પૈસા કેવી રીતે બચાવું?","What is my financial health?":"મારું નાણાકીય સ્વાસ્થ્ય કેવું છે?","Show my food spending":"મારો ખોરાક ખર્ચ બતાવો"
-}};
-function translatePage(lang){
- const dict=FULL_TRANSLATIONS[lang]||FULL_TRANSLATIONS.en;
- document.querySelectorAll("body *").forEach(el=>{
-   if(el.children.length===0 && el.textContent.trim()){
-     const raw=el.textContent.trim();
-     if(dict[raw]) el.textContent=el.textContent.replace(raw,dict[raw]);
-   }
- });
- document.querySelectorAll("input[placeholder],textarea[placeholder]").forEach(el=>{
-   const raw=el.getAttribute("placeholder"); if(dict[raw])el.setAttribute("placeholder",dict[raw]);
- });
-}
-function setLanguageEverywhere(lang){
- localStorage.setItem("saarthi_lang",lang);
- applyLanguage(lang);
- setTimeout(()=>translatePage(lang),20);
- setTimeout(()=>translatePage(lang),300);
-}
-
+function setTextEl(el,text){const span=el?.querySelector("span");el.childNodes.forEach(n=>{if(n.nodeType===3)n.textContent="";}); if(span) el.appendChild(document.createTextNode(text));}
 function setupAuthAndExtras(){
   const auth=$("auth-screen"), form=$("login-form"), demo=$("demo-login");
-  auth.style.display="grid"; if(localStorage.getItem("saarthi_signed_in")==="1") auth.style.display="none";
-  const signIn=()=>{localStorage.setItem("saarthi_signed_in","1");auth.style.display="none";document.body.classList.add("demo-authenticated");showToast("Demo sign-in successful — welcome to SAARTHI.");};
+  if(localStorage.getItem("saarthi_signed_in")==="1") auth.style.display="none";
+  const signIn=()=>{localStorage.setItem("saarthi_signed_in","1");auth.style.display="none";showToast("Signed in successfully — welcome to SAARTHI.");};
   form?.addEventListener("submit",e=>{e.preventDefault();signIn();});
   demo?.addEventListener("click",signIn);
-  $("auth-language")?.addEventListener("change",e=>setLanguageEverywhere(e.target.value));
-  $("language-select")?.addEventListener("change",e=>setLanguageEverywhere(e.target.value));
+  $("auth-language")?.addEventListener("change",e=>applyLanguage(e.target.value));
+  $("language-select")?.addEventListener("change",e=>applyLanguage(e.target.value));
   $("profile-btn")?.addEventListener("click",e=>{e.stopPropagation();$("profile-menu")?.classList.toggle("open");});
   $("notifications-btn")?.addEventListener("click",()=>showToast("You have 2 new financial insights. Bills are on track."));
   $("logout-btn")?.addEventListener("click",()=>{localStorage.removeItem("saarthi_signed_in");location.reload();});
   document.addEventListener("click",e=>{if(!e.target.closest(".profile-menu")&&!e.target.closest("#profile-btn"))$("profile-menu")?.classList.remove("open");});
-  setLanguageEverywhere(localStorage.getItem("saarthi_lang")||"en");
+  applyLanguage(localStorage.getItem("saarthi_lang")||"en");
 }
 document.addEventListener("DOMContentLoaded",setupAuthAndExtras);
 
@@ -484,77 +448,10 @@ function smartReply(message) {
   return {reply,chips};
 }
 
-
-function translateAIReply(text, lang){
-  if(!text || lang==="en") return text;
-  const hi={
-    "Hi! I'm Saarthi 👋 I can analyze your spending, savings, recurring bills, financial health, and even answer questions about a purchase. Try asking naturally — you don't need a fixed command.":"नमस्ते! मैं सारथी हूँ 👋 मैं आपके खर्च, बचत, बिल, वित्तीय स्वास्थ्य और खरीदारी से जुड़े सवालों का विश्लेषण कर सकता हूँ। आप सामान्य भाषा में पूछ सकते हैं।",
-    "Your largest spending category is":"आपकी सबसे बड़ी खर्च श्रेणी है",
-    "Total tracked expenses are about":"कुल ट्रैक किए गए खर्च लगभग हैं",
-    "How can I reduce it?":"मैं इसे कैसे कम करूँ?",
-    "How do I reduce it?":"मैं इसे कैसे कम करूँ?",
-    "Your spending is fairly distributed across categories.":"आपका खर्च अलग-अलग श्रेणियों में संतुलित है।",
-    "You've spent about":"आपने लगभग खर्च किए हैं",
-    "on Food.":"भोजन पर।",
-    "A 25% reduction would free roughly":"25% कम करने पर लगभग बचेंगे",
-    "this month.":"इस महीने।",
-    "Based on your demo cash flow, you're saving around":"आपके डेमो कैश फ्लो के अनुसार, आपकी बचत लगभग है",
-    "A practical next step is to target":"अगला व्यावहारिक कदम लक्ष्य रखना है",
-    "Your demo Financial Health Score is":"आपका डेमो वित्तीय स्वास्थ्य स्कोर है",
-    "Your strongest signal is positive cash flow; your next opportunity is controlling discretionary spending and keeping recurring bills predictable.":"आपकी सबसे अच्छी बात सकारात्मक कैश फ्लो है; अगला अवसर अनावश्यक खर्च को नियंत्रित करना और नियमित बिलों को व्यवस्थित रखना है।",
-    "Your simulated monthly income is about":"आपकी सिम्युलेटेड मासिक आय लगभग है",
-    "with tracked expenses around":"और ट्रैक किए गए खर्च लगभग हैं",
-    "That leaves approximately":"इससे लगभग बचते हैं",
-    "I found recurring commitments in your demo data.":"मुझे आपके डेमो डेटा में नियमित भुगतान मिले हैं।",
-    "These are useful to review because small recurring charges can quietly reduce monthly savings.":"इनकी समीक्षा करना उपयोगी है क्योंकि छोटे नियमित शुल्क मासिक बचत कम कर सकते हैं।",
-    "Open Transactions to inspect them.":"उन्हें देखने के लिए Transactions खोलें।",
-    "Here's your quick monthly picture:":"आपकी मासिक स्थिति का संक्षिप्त सार:",
-    "Your Transactions section contains the simulated activity behind my analysis.":"आपके Transactions सेक्शन में मेरे विश्लेषण के लिए सिम्युलेटेड गतिविधि है।",
-    "I can help with that.":"मैं इसमें आपकी मदद कर सकता हूँ।",
-    "Ask me in your own words and I'll keep the conversation context.":"अपने शब्दों में पूछें, मैं बातचीत का संदर्भ बनाए रखूँगा।",
-    "It looks manageable if this is a one-time purchase, but I'd avoid it if it would reduce your planned emergency buffer.":"अगर यह एक बार की खरीदारी है तो यह संभालने योग्य लगती है, लेकिन यदि इससे आपकी आपातकालीन बचत कम होती है तो इसे टालना बेहतर होगा।"
-  };
-  const gu={
-    "Hi! I'm Saarthi 👋 I can analyze your spending, savings, recurring bills, financial health, and even answer questions about a purchase. Try asking naturally — you don't need a fixed command.":"નમસ્તે! હું સારથી છું 👋 હું તમારા ખર્ચ, બચત, બિલ, નાણાકીય સ્વાસ્થ્ય અને ખરીદી સંબંધિત પ્રશ્નોનું વિશ્લેષણ કરી શકું છું. તમે સામાન્ય ભાષામાં પૂછો.",
-    "Your largest spending category is":"તમારી સૌથી મોટી ખર્ચ કેટેગરી છે",
-    "Total tracked expenses are about":"કુલ ટ્રેક થયેલા ખર્ચ લગભગ છે",
-    "Your spending is fairly distributed across categories.":"તમારો ખર્ચ કેટેગરીઓમાં સારી રીતે વહેંચાયેલો છે.",
-    "You've spent about":"તમે લગભગ ખર્ચ્યા છે",
-    "on Food.":"ખોરાક પર.",
-    "A 25% reduction would free roughly":"25% ઘટાડાથી લગભગ બચશે",
-    "this month.":"આ મહિને.",
-    "Based on your demo cash flow, you're saving around":"તમારા ડેમો કેશ ફ્લો મુજબ તમારી બચત લગભગ છે",
-    "Your demo Financial Health Score is":"તમારો ડેમો નાણાકીય સ્વાસ્થ્ય સ્કોર છે",
-    "Your strongest signal is positive cash flow; your next opportunity is controlling discretionary spending and keeping recurring bills predictable.":"તમારી મજબૂત બાબત સકારાત્મક કેશ ફ્લો છે; આગળ બિનજરૂરી ખર્ચ નિયંત્રિત કરવો અને નિયમિત બિલ વ્યવસ્થિત રાખવા જોઈએ.",
-    "Your simulated monthly income is about":"તમારી સિમ્યુલેટેડ માસિક આવક લગભગ છે",
-    "That leaves approximately":"આથી લગભગ બાકી રહે છે",
-    "I found recurring commitments in your demo data.":"તમારા ડેમો ડેટામાં નિયમિત ચૂકવણીઓ મળી છે.",
-    "Here's your quick monthly picture:":"તમારી માસિક સ્થિતિનો ટૂંકો સાર:",
-    "I can help with that.":"હું તેમાં તમારી મદદ કરી શકું છું.",
-    "Ask me in your own words and I'll keep the conversation context.":"તમારા શબ્દોમાં પૂછો, હું વાતચીતનો સંદર્ભ જાળવી રાખીશ."
-  };
-  let out=text;
-  const dict=lang==="hi"?hi:gu;
-  Object.entries(dict).forEach(([a,b])=>{out=out.split(a).join(b);});
-  return out;
-}
-
-
-function localizedChips(chips){
-  const l=localStorage.getItem("saarthi_lang")||"en";
-  if(l==="en")return chips;
-  const map={
-   hi:{"Where do I overspend?":"मैं कहाँ ज़्यादा खर्च करता हूँ?","How can I save?":"मैं कैसे बचत करूँ?","Check my financial health":"मेरा वित्तीय स्वास्थ्य देखें","How do I reduce it?":"मैं इसे कैसे कम करूँ?","Compare my spending":"मेरे खर्च की तुलना करें","What can I save?":"मैं कितना बचा सकता हूँ?","Show food spending":"भोजन का खर्च दिखाएँ","How much can I save?":"मैं कितना बचा सकता हूँ?","Show another category":"दूसरी श्रेणी दिखाएँ","Set a food goal":"फूड लक्ष्य सेट करें","Make me a plan":"मेरे लिए योजना बनाएं","Show transactions":"लेन-देन दिखाएँ","Find recurring bills":"नियमित बिल खोजें","Analyze my month":"मेरे महीने का विश्लेषण करें","Where do I spend most?":"मैं सबसे ज्यादा कहाँ खर्च करता हूँ?","Can I afford ₹5,000?":"क्या मैं ₹5,000 खर्च कर सकता हूँ?","Can I afford ₹10,000?":"क्या मैं ₹10,000 खर्च कर सकता हूँ?"},
-   gu:{"Where do I overspend?":"હું ક્યાં વધુ ખર્ચું છું?","How can I save?":"હું કેવી રીતે બચત કરું?","Check my financial health":"મારું નાણાકીય સ્વાસ્થ્ય જુઓ","How do I reduce it?":"હું તેને કેવી રીતે ઘટાડું?","Compare my spending":"મારા ખર્ચની સરખામણી કરો","What can I save?":"હું કેટલું બચાવી શકું?","Show food spending":"ખોરાકનો ખર્ચ બતાવો","How much can I save?":"હું કેટલું બચાવી શકું?","Show another category":"બીજી કેટેગરી બતાવો","Set a food goal":"ફૂડ લક્ષ્ય સેટ કરો","Make me a plan":"મારા માટે યોજના બનાવો","Show transactions":"વ્યવહારો બતાવો","Find recurring bills":"નિયમિત બિલ શોધો","Analyze my month":"મારા મહિનાનું વિશ્લેષણ કરો","Where do I spend most?":"હું સૌથી વધુ ક્યાં ખર્ચું છું?","Can I afford ₹5,000?":"શું હું ₹5,000 ખર્ચી શકું?"}
-  };
-  const d=map[l]||{};return chips.map(x=>d[x]||x);
-}
-
 function renderChatChips(chips){
   const box=$("chat-messages"); if(!box) return;
   const old=box.querySelector(".ai-chips"); if(old) old.remove();
   if(!chips?.length)return;
-  chips=localizedChips(chips);
   const wrap=document.createElement("div"); wrap.className="ai-chips";
   chips.forEach(c=>{const b=document.createElement("button");b.className="prompt";b.textContent=c;b.addEventListener("click",()=>{$("chat-input").value=c;sendChat();});wrap.appendChild(b);});
   box.appendChild(wrap);
@@ -568,11 +465,11 @@ async function sendChat() {
   try{
     const result=await api("/api/chat",{method:"POST",body:JSON.stringify({message,history:chatContext.history.slice(-6)})});
     const fallback=smartReply(message);
-    if(thinking) thinking.textContent=translateAIReply(result.reply||fallback.reply,localStorage.getItem("saarthi_lang")||"en");
+    if(thinking) thinking.textContent=result.reply||fallback.reply;
     renderChatChips(fallback.chips);
   }catch{
     const result=smartReply(message);
-    if(thinking) thinking.textContent=translateAIReply(result.reply,localStorage.getItem("saarthi_lang")||"en");
+    if(thinking) thinking.textContent=result.reply;
     renderChatChips(result.chips);
   }
 }

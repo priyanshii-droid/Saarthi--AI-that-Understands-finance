@@ -16,8 +16,3 @@
 @media(max-width:760px){.auth-card{padding:25px}.icon-btn{display:none}}
 
 .ai-chips{display:flex;flex-wrap:wrap;gap:7px;margin:8px 0 12px}.ai-chips .prompt{font-size:10px;padding:7px 10px;border-radius:999px;cursor:pointer;border:1px solid #ddd;background:#f7f6fa}.ai-chips .prompt:hover{transform:translateY(-1px)}
-.language-select{min-width:92px!important;height:34px!important;border:1px solid #dedde5!important;background:#f7f6f9!important;border-radius:9px!important;padding:0 8px!important;color:#514d83!important;font-weight:800!important;font-size:11px!important;cursor:pointer!important;display:inline-block!important}
-.auth-lang select{font-size:11px}
-
-#demo-login{font-size:12px!important;border:1px solid #d7d4e5!important;box-shadow:0 3px 10px #0001}
-.auth-submit{font-size:12px!important}
